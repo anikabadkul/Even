@@ -49,12 +49,11 @@ export default function App() {
       </h1>
       <div className="min-h-screen flex flex-wrap gap-14 items-center justify-center px-9 py-12 max-[760px]:block max-[760px]:p-0">
         <Editorial />
-        <PhoneFrame>
+        <PhoneFrame overlay={selected && <MealSheet onClose={closeMeal} announce={announce} />}>
           {screen === 'welcome' && <Welcome />}
           {screen === 'setup' && <Setup />}
           {screen === 'plan' && <Plan announce={announce} />}
           {screen === 'list' && <ShoppingList announce={announce} />}
-          {selected && <MealSheet onClose={closeMeal} announce={announce} />}
         </PhoneFrame>
       </div>
       <div ref={liveRef} className="sr-only" aria-live="polite" />

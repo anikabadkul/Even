@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export function PhoneFrame({ children }: { children: ReactNode }) {
+export function PhoneFrame({ children, overlay }: { children: ReactNode; overlay?: ReactNode }) {
   return (
     <div className="flex-none w-[392px] h-[812px] bg-[#1f1c17] rounded-[46px] p-[11px] shadow-[0_2px_1px_rgba(255,255,255,.5)_inset,0_40px_80px_-28px_rgba(43,38,32,.55),0_8px_24px_-12px_rgba(43,38,32,.4)] max-[760px]:w-screen max-[760px]:h-[100dvh] max-[760px]:rounded-none max-[760px]:p-0 max-[760px]:shadow-none">
       <div className="relative w-full h-full bg-surface rounded-[36px] overflow-hidden max-[760px]:rounded-none">
@@ -8,6 +8,7 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
         <div className="absolute inset-0 overflow-y-auto bg-surface" id="app-scroll">
           {children}
         </div>
+        {overlay}
       </div>
     </div>
   );
