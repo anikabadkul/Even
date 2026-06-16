@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useSession } from './state/session';
 import { PhoneFrame } from './ui/PhoneFrame';
 import { Welcome } from './ui/screens/Welcome';
@@ -36,11 +36,16 @@ export default function App() {
   const screen = useSession((s) => s.screen);
   const selected = useSession((s) => s.selected);
   const closeMeal = useSession((s) => s.closeMeal);
+  const loadCapabilities = useSession((s) => s.loadCapabilities);
   const liveRef = useRef<HTMLDivElement>(null);
 
   const announce = useCallback((msg: string) => {
     if (liveRef.current) liveRef.current.textContent = msg;
   }, []);
+
+  useEffect(() => {
+    loadCapabilities();
+  }, [loadCapabilities]);
 
   return (
     <>

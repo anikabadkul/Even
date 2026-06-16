@@ -5,7 +5,6 @@ import { boosterItems, computeBudget, summarizeWeek } from '../../domain/budget'
 import { aggregateIngredients, buildShoppingList, AISLE_ORDER } from '../../domain/shopping';
 import { householdLabel } from '../../domain/nutrition';
 import { applyLivePrices } from '../../integrations/kroger';
-import { hasKroger } from '../../integrations/env';
 import { f } from '../format';
 import { BackButton, SecondaryButton } from '../components/Button';
 import { Toast } from '../components/Toast';
@@ -18,6 +17,7 @@ export function ShoppingList({ announce }: { announce: (msg: string) => void }) 
     diet,
     picks,
     setScreen,
+    capabilities,
     zip,
     setZip,
     locationStatus,
@@ -91,7 +91,7 @@ export function ShoppingList({ announce }: { announce: (msg: string) => void }) 
       <div className="px-5 pt-[18px] flex-1">
         <p className="text-[15.5px] text-ink-soft mb-2">Everything for the week in one list, biggest cost first.</p>
 
-        {hasKroger && (
+        {capabilities.kroger && (
           <div className="flex items-center gap-2 mb-3">
             <input
               type="text"
@@ -111,13 +111,13 @@ export function ShoppingList({ announce }: { announce: (msg: string) => void }) 
             </SecondaryButton>
           </div>
         )}
-        {hasKroger && locationStatus === 'error' && (
+        {capabilities.kroger && locationStatus === 'error' && (
           <p className="text-[12.5px] text-ink-soft mb-3">Couldn't find a store near that ZIP.</p>
         )}
-        {hasKroger && livePrices.size > 0 && (
+        {capabilities.kroger && livePrices.size > 0 && (
           <p className="text-[12.5px] text-accent-ink mb-3">Showing live prices for {livePrices.size} item(s).</p>
         )}
-        {hasKroger && (
+        {capabilities.kroger && (
           <button className="font-mono text-[13px] font-bold text-accent-ink mb-3 underline" onClick={openScanner}>
             Scan a barcode to check a price
           </button>

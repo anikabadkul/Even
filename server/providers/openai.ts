@@ -1,9 +1,10 @@
-import type { Diet, Meal, WeekPicks } from '../domain/types';
-import { MEALS } from '../data/meals';
-import { OPENAI_API_KEY, hasOpenAI } from './env';
-import { buildWeekPlanPrompt, parseWeekPlanResponse } from './aiPlan';
+import type { Diet, Meal, WeekPicks } from '../../src/domain/types';
+import { MEALS } from '../../src/data/meals';
+import { buildWeekPlanPrompt, parseWeekPlanResponse } from '../../src/integrations/aiPlan';
 
 const MODEL = 'gpt-4o-mini';
+
+export const hasOpenAI = Boolean(process.env.OPENAI_API_KEY);
 
 /** Asks OpenAI to assemble a week; returns null on any failure so callers can fall back to another provider/the local assembler. */
 export async function generateWeekPlan(diet: Diet, budget: number, pool: Meal[] = MEALS): Promise<WeekPicks | null> {
@@ -13,7 +14,7 @@ export async function generateWeekPlan(diet: Diet, budget: number, pool: Meal[] 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: MODEL,
@@ -22,8 +23,9 @@ export async function generateWeekPlan(diet: Diet, budget: number, pool: Meal[] 
       }),
     });
     if (!res.ok) return null;
-    const data = await res.json();
-    const text = data?.choices?.[0]?.message?.content;
+    const data = (await res.json()) as Record<string, unknown>;
+    const choices = data.choices as Record<string, unknown>[] | undefined;
+    const text = (choices?.[0]?.message as Record<string, unknown> | undefined)?.content;
     if (typeof text !== 'string') return null;
     return parseWeekPlanResponse(text, diet, pool);
   } catch {

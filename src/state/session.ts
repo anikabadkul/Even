@@ -2,10 +2,9 @@ import { create } from 'zustand';
 import { assembleWeek } from '../domain/plan';
 import { DIET_KEY } from '../domain/plan';
 import type { Diet, DietLabel, WeekPicks } from '../domain/types';
-import { generateWeekPlan as generateWeekPlanOpenAI } from '../integrations/openai';
-import { generateWeekPlan as generateWeekPlanGemini } from '../integrations/gemini';
+import { generateWeekPlan } from '../integrations/aiPlanClient';
 import { fetchLivePrices, findLocationId, lookupBarcode, type KrogerProduct } from '../integrations/kroger';
-import { hasAI, hasOpenAI, hasKroger } from '../integrations/env';
+import { fetchCapabilities, type Capabilities } from '../integrations/env';
 
 export type Screen = 'welcome' | 'setup' | 'plan' | 'list';
 export type AsyncStatus = 'idle' | 'loading' | 'done' | 'error';
@@ -27,6 +26,9 @@ interface SessionState {
   edited: boolean;
   saved: boolean;
   selected: SelectedMeal | null;
+
+  capabilities: Capabilities;
+  loadCapabilities: () => Promise<void>;
 
   aiStatus: AsyncStatus;
   generateWithAI: () => Promise<void>;
@@ -74,6 +76,8 @@ export const useSession = create<SessionState>((set, get) => ({
   saved: false,
   selected: null,
 
+  capabilities: { ai: false, kroger: false },
+
   aiStatus: 'idle',
   zip: '',
   locationId: null,
@@ -118,14 +122,16 @@ export const useSession = create<SessionState>((set, get) => ({
   closeMeal: () => set({ selected: null }),
   markSaved: () => set({ saved: true }),
 
+  loadCapabilities: async () => {
+    set({ capabilities: await fetchCapabilities() });
+  },
+
   generateWithAI: async () => {
-    if (!hasAI) return;
+    if (!get().capabilities.ai) return;
     set({ aiStatus: 'loading' });
     const { diet, budget } = get();
     const key = DIET_KEY[diet];
-    const plan = hasOpenAI
-      ? (await generateWeekPlanOpenAI(key, budget)) ?? (await generateWeekPlanGemini(key, budget))
-      : await generateWeekPlanGemini(key, budget);
+    const plan = await generateWeekPlan(key, budget);
     if (plan) {
       set({ picks: plan, picksDiet: key, edited: false, aiStatus: 'done' });
     } else {
@@ -136,7 +142,7 @@ export const useSession = create<SessionState>((set, get) => ({
   setZip: (zip) => set({ zip, locationId: null, locationStatus: 'idle', livePrices: new Map() }),
 
   refreshLivePrices: async (itemNames) => {
-    if (!hasKroger) return;
+    if (!get().capabilities.kroger) return;
     const { zip } = get();
     if (!zip) return;
     set({ locationStatus: 'loading' });
@@ -154,7 +160,7 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   scanBarcode: async (upc) => {
-    if (!hasKroger) return;
+    if (!get().capabilities.kroger) return;
     set({ barcodeStatus: 'loading', barcodeResult: null });
     let locationId = get().locationId;
     if (!locationId && get().zip) locationId = await findLocationId(get().zip);

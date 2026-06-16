@@ -4,7 +4,6 @@ import { Label } from '../components/Card';
 import { useSession } from '../../state/session';
 import { floorFor } from '../../domain/budget';
 import { householdLabel } from '../../domain/nutrition';
-import { hasAI } from '../../integrations/env';
 import { f } from '../format';
 import type { DietLabel } from '../../domain/types';
 
@@ -17,6 +16,7 @@ export function Setup() {
     kids,
     diet,
     aiStatus,
+    capabilities,
     setScreen,
     setBudget,
     setAdults,
@@ -121,7 +121,7 @@ export function Setup() {
       </div>
 
       <div className="sticky bottom-0 px-5 pb-[calc(18px+env(safe-area-inset-bottom))] pt-3.5 bg-gradient-to-t from-surface from-[24%] to-transparent">
-        {hasAI && (
+        {capabilities.ai && (
           <SecondaryButton
             className="mb-2.5"
             disabled={aiStatus === 'loading'}

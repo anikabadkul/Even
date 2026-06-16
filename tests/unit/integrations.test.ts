@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildWeekPlanPrompt, parseWeekPlanResponse } from '../../src/integrations/aiPlan';
-import { applyLivePrices, extractProduct } from '../../src/integrations/kroger';
+import { applyLivePrices, extractProduct } from '../../src/integrations/krogerShared';
 import { eligibleMeals, mealAt, SLOTS } from '../../src/domain/plan';
 import type { PurchaseLine } from '../../src/domain/shopping';
 
