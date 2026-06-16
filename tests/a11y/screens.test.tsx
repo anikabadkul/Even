@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import App from '../../src/App';
 import { useSession } from '../../src/state/session';
@@ -24,14 +24,8 @@ function resetSession() {
 beforeEach(resetSession);
 
 describe('accessibility (axe)', () => {
-  it('welcome screen has no detectable violations', async () => {
+  it('welcome/setup screen has no detectable violations', async () => {
     const { container } = render(<App />);
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it('setup screen has no detectable violations', async () => {
-    const { container } = render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /start/i }));
     expect(await axe(container)).toHaveNoViolations();
   });
 

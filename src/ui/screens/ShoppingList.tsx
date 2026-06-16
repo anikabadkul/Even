@@ -5,7 +5,7 @@ import { boosterItems, computeBudget, summarizeWeek } from '../../domain/budget'
 import { aggregateIngredients, buildShoppingList, AISLE_ORDER } from '../../domain/shopping';
 import { householdLabel } from '../../domain/nutrition';
 import { f } from '../format';
-import { BackButton } from '../components/Button';
+import { BackButton, PrimaryButton, SecondaryButton } from '../components/Button';
 import { Toast } from '../components/Toast';
 
 export function ShoppingList({ announce }: { announce: (msg: string) => void }) {
@@ -55,7 +55,8 @@ export function ShoppingList({ announce }: { announce: (msg: string) => void }) 
   }
 
   return (
-    <div className="flex flex-col min-h-full animate-[fade-in_.26s_ease_both]">
+    <div className="min-h-screen flex flex-col animate-[fade-in_.26s_ease_both]">
+      {/* Sticky header */}
       <div className="sticky top-0 z-[5] bg-surface border-b border-line px-5 py-3.5 flex items-center gap-2.5">
         <BackButton aria-label="Back to plan" onClick={() => setScreen('plan')}>
           ←
@@ -65,8 +66,9 @@ export function ShoppingList({ announce }: { announce: (msg: string) => void }) 
           tabIndex={-1}
           className="block text-[12.5px] font-bold tracking-wide uppercase text-ink-soft flex-1 outline-none"
         >
-          Shopping list · {hhLabel}
+          Shopping list
         </span>
+        <span className="text-[12.5px] text-ink-soft hidden sm:block">{hhLabel}</span>
         <button
           className="font-mono text-[13px] font-bold text-accent-ink bg-accent-soft border border-[#bcd2c5] rounded-full px-3 py-[7px]"
           onClick={share}
@@ -76,66 +78,85 @@ export function ShoppingList({ announce }: { announce: (msg: string) => void }) 
         </button>
       </div>
 
-      <div className="px-5 pt-[18px] flex-1">
-        <p className="text-[15.5px] text-ink-soft mb-2">Everything for the week in one list, biggest cost first.</p>
+      {/* Main content */}
+      <div className="flex-1 px-5 pt-8 pb-12 max-w-screen-xl mx-auto w-full">
+        <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-12">
+          {/* Left: aisle groups */}
+          <div>
+            <h2 className="font-serif text-[36px] lg:text-[42px] leading-tight mb-6">
+              Everything for the week.
+            </h2>
 
-        {AISLE_ORDER.map((cat) => {
-          const inCat = lines.filter((i) => i.aisle === cat);
-          if (!inCat.length) return null;
-          return (
-            <div key={cat} className="mt-4">
-              <span className="block text-[12.5px] font-bold tracking-wide uppercase text-accent-ink">{cat}</span>
-              <div className="mt-1">
-                {inCat.map((i) => {
-                  const spoilRisk = !i.added && i.perishableDays && i.leftoverServings > 0;
-                  return (
-                    <div key={i.name} className="py-[11px] border-b border-line">
-                      <div className="flex items-baseline gap-2.5">
-                        <span className="flex-1 text-[15px] font-medium">
-                          {i.name}{' '}
-                          {!i.added && i.packLabel && (
-                            <span className="text-ink-soft font-mono text-xs">
-                              {i.packs} × {i.packLabel}
+            {AISLE_ORDER.map((cat) => {
+              const inCat = lines.filter((i) => i.aisle === cat);
+              if (!inCat.length) return null;
+              return (
+                <div key={cat} className="mt-6">
+                  <span className="block text-[12.5px] font-bold tracking-wide uppercase text-accent-ink mb-1">
+                    {cat}
+                  </span>
+                  <div>
+                    {inCat.map((i) => {
+                      const spoilRisk = !i.added && i.perishableDays && i.leftoverServings > 0;
+                      return (
+                        <div key={i.name} className="py-[11px] border-b border-line">
+                          <div className="flex items-baseline gap-2.5">
+                            <span className="flex-1 text-[15px] font-medium">
+                              {i.name}{' '}
+                              {!i.added && i.packLabel && (
+                                <span className="text-ink-soft font-mono text-xs">
+                                  {i.packs} × {i.packLabel}
+                                </span>
+                              )}
+                              {i.added && <span className="text-ink-soft font-mono text-xs">added</span>}
                             </span>
+                            <span className="font-mono text-sm font-bold">{f(i.purchaseCost)}</span>
+                          </div>
+                          {spoilRisk && (
+                            <p className="text-[11.5px] text-amber-700 mt-0.5">
+                              ~{i.leftoverServings} serving{i.leftoverServings !== 1 ? 's' : ''} left over — use within {i.perishableDays} days or it may spoil. Swap in a meal that uses it to avoid waste.
+                            </p>
                           )}
-                          {i.added && <span className="text-ink-soft font-mono text-xs">added</span>}
-                        </span>
-                        <span className="font-mono text-sm font-bold">{f(i.purchaseCost)}</span>
-                      </div>
-                      {spoilRisk && (
-                        <p className="text-[11.5px] text-amber-700 mt-0.5">
-                          ~{i.leftoverServings} serving{i.leftoverServings !== 1 ? 's' : ''} left over — use within {i.perishableDays} days or it may spoil. Swap in a meal that uses it to avoid waste.
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+
+            <div className="flex justify-between items-baseline mt-6 border-t-2 border-ink pt-3">
+              <span className="font-serif text-xl">Week total</span>
+              <span className="font-mono text-lg font-bold">{f(total)}</span>
             </div>
-          );
-        })}
+            <p className="text-[12.5px] mt-2.5 text-ink-soft">
+              Quantities are for the week. Staples like rice, oats and peanut butter are bought once and last several
+              weeks, so the price shown is what you pay at the till for the pack; the plan's budget math uses the
+              amortized share actually used this week.
+            </p>
+          </div>
 
-        <div className="flex justify-between items-baseline mt-4">
-          <span className="font-serif text-xl">Week total</span>
-          <span className="font-mono text-lg font-bold">{f(total)}</span>
+          {/* Right: sticky summary card */}
+          <div className="mt-10 lg:mt-0">
+            <div className="lg:sticky lg:top-[72px] bg-paper rounded-2xl p-6 border border-line flex flex-col gap-4">
+              <div className="flex justify-between items-baseline">
+                <span className="font-serif text-xl">Total</span>
+                <span className="font-mono text-[20px] font-bold">{f(total)}</span>
+              </div>
+              <PrimaryButton
+                onClick={() => {
+                  window.print();
+                  setSaved(true);
+                }}
+              >
+                {saved ? 'Saved ✓' : 'Download PDF'}
+              </PrimaryButton>
+              <SecondaryButton onClick={() => setScreen('plan')}>
+                ← Back to plan
+              </SecondaryButton>
+            </div>
+          </div>
         </div>
-        <p className="text-[12.5px] mt-2.5 text-ink-soft">
-          Quantities are for the week. Staples like rice, oats and peanut butter are bought once and last several
-          weeks, so the price shown is what you pay at the till for the pack; the plan's budget math uses the
-          amortized share actually used this week.
-        </p>
-      </div>
-
-      <div className="sticky bottom-0 px-5 pb-[calc(18px+env(safe-area-inset-bottom))] pt-3.5 bg-gradient-to-t from-surface from-[24%] to-transparent">
-        <button
-          className="w-full min-h-14 rounded-2xl bg-accent text-white text-[17px] font-bold"
-          onClick={() => {
-            window.print();
-            setSaved(true);
-          }}
-        >
-          {saved ? 'Saved ✓' : 'Download PDF'}
-        </button>
       </div>
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}

@@ -21,19 +21,16 @@ beforeEach(() => {
 });
 
 describe('end-to-end UI flow', () => {
-  it('walks welcome -> setup -> plan -> shopping list', () => {
+  it('walks welcome/setup -> plan -> shopping list', () => {
     render(<App />);
-    expect(screen.getByText(/eat as well as your budget allows/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /start/i }));
+    // Welcome and Setup are now merged — the landing page shows "Set up your week"
     expect(screen.getByText(/set up your week/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /build my week/i }));
-    expect(screen.getByText(/your 7 days/i)).toBeInTheDocument();
-    expect(screen.getByText(/21 meals/i)).toBeInTheDocument();
+    expect(screen.getByText(/the best week for/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /get my shopping list/i }));
-    expect(screen.getByText(/everything for the week in one list/i)).toBeInTheDocument();
+    expect(screen.getByText(/everything for the week/i)).toBeInTheDocument();
   });
 
   it('opens a meal sheet and swaps a meal', () => {

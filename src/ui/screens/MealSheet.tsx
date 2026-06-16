@@ -80,11 +80,11 @@ export function MealSheet({ onClose, announce }: MealSheetProps) {
   const orphaned = [...currentPerishables].filter((item) => !otherMealPerishables.has(item));
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={meal.name} className="absolute inset-0 z-50">
-      <div className="absolute inset-0 bg-[rgba(38,34,25,.45)] animate-[fade-in_.25s_ease_both]" onClick={onClose} />
+    <div role="dialog" aria-modal="true" aria-label={meal.name} className="fixed inset-0 z-50">
+      <div className="fixed inset-0 bg-[rgba(38,34,25,.45)] animate-[fade-in_.25s_ease_both]" onClick={onClose} />
       <div
         ref={dialogRef}
-        className="absolute left-1/2 -translate-x-1/2 bottom-0 w-full max-w-[430px] max-h-[92%] bg-surface rounded-t-[18px] flex flex-col overflow-hidden"
+        className="fixed left-1/2 -translate-x-1/2 bottom-0 w-full max-w-[430px] max-h-[92%] bg-surface rounded-t-[18px] flex flex-col overflow-hidden"
         style={{ animation: 'sheet-up .34s cubic-bezier(.22,.61,.36,1) both' }}
       >
         <div className="flex-none flex justify-center pt-3 pb-0.5">

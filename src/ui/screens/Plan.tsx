@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from '../../state/session';
-import { DIET_KEY, mealAt, SLOTS, SLOT_LABEL } from '../../domain/plan';
+import { DIET_KEY, mealAt, SLOTS } from '../../domain/plan';
 import { boosterItems, computeBudget, summarizeWeek } from '../../domain/budget';
 import { householdLabel } from '../../domain/nutrition';
 import { effFor } from '../../domain/money';
@@ -11,6 +11,8 @@ import { PrimaryButton, SecondaryButton } from '../components/Button';
 import { Toast } from '../components/Toast';
 import { weekLabels } from '../../domain/calendar';
 import { CAL_ADULT, CAL_KID } from '../../data/references';
+
+const SLOT_LABEL: Record<string, string> = { B: 'Breakfast', L: 'Lunch', D: 'Dinner' };
 
 interface PlanProps {
   announce: (msg: string) => void;
@@ -53,9 +55,11 @@ export function Plan({ announce }: PlanProps) {
   }
 
   return (
-    <div className="flex flex-col min-h-full animate-[fade-in_.26s_ease_both]">
-      <div className="sticky top-0 z-[5] bg-surface border-b border-line px-5 py-3.5 flex items-center gap-2.5">
-        <span className="block text-[12.5px] font-bold tracking-wide uppercase text-ink-soft flex-1">Your week</span>
+    <div className="min-h-screen flex flex-col animate-[fade-in_.26s_ease_both]">
+      {/* Sticky top nav */}
+      <nav className="sticky top-0 z-[5] bg-surface border-b border-line px-5 py-3.5 flex items-center gap-3">
+        <span className="font-serif text-xl font-medium flex-1">Even</span>
+        <span className="text-[12.5px] text-ink-soft hidden sm:block">{hhLabel}</span>
         <button
           className="font-mono text-[13px] font-bold text-accent-ink bg-accent-soft border border-[#bcd2c5] rounded-full px-3 py-[7px]"
           onClick={doShuffle}
@@ -66,128 +70,156 @@ export function Plan({ announce }: PlanProps) {
         <button
           className="text-sm font-bold text-accent-ink underline underline-offset-2 px-1"
           onClick={() => setScreen('setup')}
+          aria-label="Edit setup"
         >
-          Edit
+          Edit setup
         </button>
-      </div>
+        <button
+          className="text-sm font-bold text-ink underline underline-offset-2 px-1"
+          onClick={() => setScreen('list')}
+          aria-label="View shopping list"
+        >
+          Shopping list
+        </button>
+      </nav>
 
-      <div className="px-5 pt-5 flex-1">
-        <h2 ref={headRef} tabIndex={-1} className="font-serif text-[32px] leading-[1.05] outline-none mb-1.5">
+      <div className="flex-1 px-5 pt-8 pb-10 max-w-screen-xl mx-auto w-full">
+        {/* Page heading */}
+        <h2
+          ref={headRef}
+          tabIndex={-1}
+          className="font-serif text-[42px] lg:text-[56px] leading-[1.0] outline-none mb-3"
+        >
           The best week for {f(budget)}.
         </h2>
-        <p className="text-[15.5px] text-ink-soft mb-[18px]">
-          {hhLabel} · {diet} · tap any meal to swap it.
+        <p className="text-[15.5px] text-ink-soft mb-8">
+          {diet} · tap any meal to swap or see the recipe
         </p>
 
-        <Card>
-          <label className="block text-[12.5px] font-bold tracking-wide uppercase text-ink-soft" htmlFor="budR">
-            Your weekly budget · drag to fill out the week
-          </label>
-          <div className="flex items-baseline gap-1.5 mt-2 mb-0.5">
-            <span className="font-serif text-[22px]">$</span>
-            <input
-              type="number"
-              inputMode="decimal"
-              min={10}
-              max={400}
-              step={0.5}
-              value={budget}
-              aria-label="Weekly budget in dollars"
-              onChange={(e) => setBudget(parseFloat(e.target.value))}
-              className="font-serif text-[30px] w-24 border-none bg-transparent text-ink p-0 border-b-[1.5px] border-line focus:outline-none"
-            />
-            <span className="block text-[12.5px] font-bold tracking-wide uppercase text-ink-soft ml-auto">
-              {f(budget / 7)}/day
-            </span>
-          </div>
-          <input
-            id="budR"
-            type="range"
-            min={10}
-            max={300}
-            step={0.5}
-            value={Math.min(300, budget)}
-            aria-label="Adjust weekly budget"
-            onChange={(e) => setBudget(parseFloat(e.target.value))}
-            onMouseUp={() =>
-              announce(v.showGap ? `${f(budget)}, ${f(v.gap)} short of a complete week` : `${f(budget)}, covers a complete week`)
-            }
-          />
-          <div className="mt-1.5">
-            <GapBlock v={v} budget={budget} hhLabel={hhLabel} />
+        {/* Budget card — horizontal on desktop */}
+        <Card className="mb-8">
+          <div className="lg:flex lg:gap-10 lg:items-start">
+            <div className="lg:flex-1">
+              <label className="block text-[12.5px] font-bold tracking-wide uppercase text-ink-soft" htmlFor="budR">
+                Your weekly budget · drag to fill out the week
+              </label>
+              <div className="flex items-baseline gap-1.5 mt-2 mb-0.5">
+                <span className="font-serif text-[22px]">$</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={10}
+                  max={400}
+                  step={0.5}
+                  value={budget}
+                  aria-label="Weekly budget in dollars"
+                  onChange={(e) => setBudget(parseFloat(e.target.value))}
+                  className="font-serif text-[30px] w-24 border-none bg-transparent text-ink p-0 border-b-[1.5px] border-line focus:outline-none"
+                />
+                <span className="block text-[12.5px] font-bold tracking-wide uppercase text-ink-soft ml-auto">
+                  {f(budget / 7)}/day
+                </span>
+              </div>
+              <input
+                id="budR"
+                type="range"
+                min={10}
+                max={300}
+                step={0.5}
+                value={Math.min(300, budget)}
+                aria-label="Adjust weekly budget"
+                onChange={(e) => setBudget(parseFloat(e.target.value))}
+                onMouseUp={() =>
+                  announce(v.showGap ? `${f(budget)}, ${f(v.gap)} short of a complete week` : `${f(budget)}, covers a complete week`)
+                }
+              />
+            </div>
+            <div className="lg:flex-1 mt-4 lg:mt-0">
+              <GapBlock v={v} budget={budget} hhLabel={hhLabel} />
+            </div>
           </div>
         </Card>
 
-        <div className="flex justify-between items-baseline mt-[26px] mb-0 mx-0.5">
-          <span className="font-serif text-[22px]">Your 7 days</span>
-          <span className="font-mono text-[13px] text-ink-soft">21 meals</span>
-        </div>
+        {/* 7-day bento grid */}
+        <div className="overflow-x-auto mb-6">
+          <div
+            className="grid gap-2 min-w-[640px]"
+            style={{ gridTemplateColumns: '72px repeat(7, minmax(0, 1fr))' }}
+          >
+            {/* Day header row */}
+            <div className="h-[52px]" aria-hidden="true" />
+            {days.map((d, i) => {
+              const dayCost = SLOTS.reduce((s, slot) => {
+                const m = mealAt(picks, i, slot, dietKey);
+                return s + m.cost * n * eff;
+              }, 0);
+              return (
+                <div key={i} className="bg-paper rounded-xl px-2 py-2.5 text-center">
+                  <div className="font-bold text-[13px]">{d.dow}</div>
+                  <div className="text-ink-soft text-[11px]">{d.date}</div>
+                  <div className="font-mono text-[12px] font-bold text-accent-ink mt-0.5">{f(dayCost)}</div>
+                </div>
+              );
+            })}
 
-        {days.map((d, i) => {
-          return (
-            <Card key={i} className="!p-0 overflow-hidden mt-3">
-              <div className="flex justify-between px-4 py-3 bg-paper border-b border-line">
-                <span className="font-bold text-[15px]">
-                  {d.dow} <span className="text-ink-soft font-medium">· {d.date}</span>
-                </span>
-                <span className="font-mono text-[13px] font-bold text-accent-ink">
-                  {f(
-                    SLOTS.reduce((s, slot) => {
-                      const m = mealAt(picks, i, slot, dietKey);
-                      return s + m.cost * n * eff;
-                    }, 0),
-                  )}
-                </span>
-              </div>
-              <div className="px-4">
-                {SLOTS.map((slot) => {
+            {/* Slot rows */}
+            {SLOTS.map((slot) => (
+              <>
+                <div
+                  key={`label-${slot}`}
+                  className="flex items-center justify-end pr-2 text-xs font-mono uppercase text-ink-soft"
+                  aria-hidden="true"
+                >
+                  {slot}
+                </div>
+                {days.map((_, i) => {
                   const m = mealAt(picks, i, slot, dietKey);
                   return (
                     <button
-                      key={slot}
-                      className="w-full flex items-center gap-3 py-[13px] border-b border-line last:border-b-0 text-left min-h-[54px]"
+                      key={`${i}-${slot}`}
+                      className="min-h-[90px] rounded-xl border-[1.5px] border-line bg-surface text-left px-3 py-2.5 flex flex-col justify-between hover:border-accent transition-colors"
                       onClick={() => openMeal(i, slot)}
                       aria-label={`${SLOT_LABEL[slot]}: ${m.name}, ${f(m.cost * n * eff)}. Tap to view or swap`}
                     >
-                      <span className="font-mono text-xs uppercase text-ink-soft w-[34px] flex-none" aria-hidden="true">
-                        {slot}
-                      </span>
-                      <span className="flex-1 text-[14.5px] font-semibold leading-tight">{m.name}</span>
-                      <span className="font-mono text-[13px] font-bold" aria-hidden="true">
-                        {f(m.cost * n * eff)}
-                      </span>
+                      <span className="text-[13px] font-semibold leading-tight line-clamp-3">{m.name}</span>
+                      <span className="font-mono text-[12px] font-bold text-accent-ink mt-1">{f(m.cost * n * eff)}</span>
                     </button>
                   );
                 })}
-              </div>
-            </Card>
-          );
-        })}
+              </>
+            ))}
+          </div>
+        </div>
 
+        {/* Booster items */}
         {adds.length > 0 && (
-          <Card className="mt-3 bg-accent-soft border-[#bcd2c5]">
+          <Card className="mb-6 bg-accent-soft border-[#bcd2c5]">
             <Label className="text-accent-ink">Added with your budget</Label>
             <p className="text-[13px] my-1.5 mb-2.5">Your extra money buys fresh food that fills the gaps:</p>
-            {adds.map((b) => (
-              <div key={b.name} className="flex justify-between text-sm py-[5px] border-b border-[#d4e0d8]">
-                <span>{b.name}</span>
-                <span className="font-mono font-bold text-accent-ink">{f(b.cost)}</span>
-              </div>
-            ))}
+            <div className="grid sm:grid-cols-2 gap-1">
+              {adds.map((b) => (
+                <div key={b.name} className="flex justify-between text-sm py-[5px] border-b border-[#d4e0d8]">
+                  <span>{b.name}</span>
+                  <span className="font-mono font-bold text-accent-ink">{f(b.cost)}</span>
+                </div>
+              ))}
+            </div>
           </Card>
         )}
 
-        <div className="flex justify-between items-baseline border-t-2 border-ink mt-3.5 mx-0.5 pt-2.5">
+        {/* Week total */}
+        <div className="flex justify-between items-baseline border-t-2 border-ink pt-2.5 mb-6">
           <span className="font-serif text-xl">Week total</span>
           <span className="font-mono text-[17px] font-bold">{f(v.total)}</span>
         </div>
 
         <NutritionCard v={v} hhLabel={hhLabel} treat={treat} meterReady={meterReady} budget={budget} />
-      </div>
 
-      <div className="sticky bottom-0 px-5 pb-[calc(18px+env(safe-area-inset-bottom))] pt-3.5 bg-gradient-to-t from-surface from-[24%] to-transparent flex flex-col gap-2.5">
-        <PrimaryButton onClick={() => setScreen('list')}>Get my shopping list</PrimaryButton>
-        <SecondaryButton onClick={() => window.print()}>Save as PDF</SecondaryButton>
+        {/* Bottom CTA */}
+        <div className="flex flex-col sm:flex-row gap-2.5 mt-8">
+          <PrimaryButton onClick={() => setScreen('list')}>Get my shopping list</PrimaryButton>
+          <SecondaryButton onClick={() => window.print()}>Save as PDF</SecondaryButton>
+        </div>
       </div>
 
       {toast && (
