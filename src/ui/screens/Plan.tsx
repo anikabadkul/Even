@@ -7,7 +7,7 @@ import { effFor } from '../../domain/money';
 import { f } from '../format';
 import { Card, Label } from '../components/Card';
 import { Meter } from '../components/Meter';
-import { PrimaryButton, SecondaryButton } from '../components/Button';
+import { SecondaryButton } from '../components/Button';
 import { Toast } from '../components/Toast';
 import { weekLabels } from '../../domain/calendar';
 import { CAL_ADULT, CAL_KID } from '../../data/references';
@@ -55,27 +55,42 @@ export function Plan({ announce }: PlanProps) {
   }
 
   return (
-    <div className="min-h-screen bg-surface animate-[fade-in_.26s_ease_both]">
+    <div className="min-h-screen animate-[fade-in_.26s_ease_both]" style={{ background: '#f8f6f1' }}>
 
       {/* ── Nav ── */}
-      <nav className="sticky top-0 z-10 bg-surface/95 backdrop-blur-sm border-b border-line px-6 lg:px-10 py-4 flex items-center gap-4">
-        <span className="font-serif text-[22px] font-medium tracking-tight flex-1">Even</span>
-        <span className="text-[12px] text-ink-soft hidden md:block">{hhLabel} · {diet}</span>
+      <nav
+        className="sticky top-0 z-10 px-6 lg:px-10 py-4 flex items-center gap-4"
+        style={{
+          background: 'rgba(248,246,241,0.85)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(0,0,0,0.06)',
+        }}
+      >
+        <span className="font-serif text-[20px] font-bold tracking-tight flex-1" style={{ color: '#0d1810' }}>Even</span>
+        <span className="text-[12px] hidden md:block" style={{ color: '#888' }}>{hhLabel} · {diet}</span>
         <button
-          className="font-mono text-[12.5px] font-bold text-accent-ink bg-accent-soft border border-[#bcd2c5] rounded-full px-4 py-2 hover:bg-[#dbeee1] transition-colors"
+          className="font-mono text-[12px] font-bold rounded-full px-4 py-2 border transition-colors"
+          style={{ color: '#2c5e3f', borderColor: '#b5d4bf', background: '#edf5ef' }}
           onClick={doShuffle}
           aria-label="Shuffle the week for different meals"
         >
           ↻ Shuffle
         </button>
         <button
-          className="text-[13px] font-semibold text-ink-soft hover:text-ink transition-colors hidden sm:block"
+          className="text-[13px] font-semibold transition-colors hidden sm:block"
+          style={{ color: '#888' }}
+          onMouseOver={(e) => (e.currentTarget.style.color = '#111')}
+          onMouseOut={(e) => (e.currentTarget.style.color = '#888')}
           onClick={() => setScreen('setup')}
         >
-          Edit setup
+          Edit
         </button>
         <button
-          className="text-[13px] font-semibold text-white bg-accent rounded-full px-4 py-2 hover:bg-[#356b4c] transition-colors"
+          className="text-[13px] font-bold text-white rounded-full px-5 py-2 transition-all"
+          style={{
+            background: 'linear-gradient(135deg, #2c5e3f 0%, #1d3e29 100%)',
+            boxShadow: '0 2px 8px rgba(13,24,16,0.2)',
+          }}
           onClick={() => setScreen('list')}
         >
           Shopping list →
@@ -83,30 +98,41 @@ export function Plan({ announce }: PlanProps) {
       </nav>
 
       {/* ── Main content ── */}
-      <div className="max-w-[1200px] mx-auto px-5 lg:px-10 pt-10 pb-16">
+      <div className="max-w-[1200px] mx-auto px-5 lg:px-10 pt-10 pb-20">
 
         {/* Page heading */}
         <h2
           ref={headRef}
           tabIndex={-1}
-          className="font-serif font-medium leading-none tracking-tight outline-none text-ink"
-          style={{ fontSize: 'clamp(36px, 5vw, 60px)' }}
+          className="font-serif font-bold outline-none"
+          style={{ fontSize: 'clamp(34px, 5vw, 58px)', lineHeight: 1.0, letterSpacing: '-0.025em', color: '#111' }}
         >
           The best week for {f(budget)}.
         </h2>
-        <p className="text-[15px] text-ink-soft mt-2 mb-8">
+        <p className="text-[15px] mt-2 mb-9" style={{ color: '#888' }}>
           {diet} · click any meal to view its recipe or swap it
         </p>
 
         {/* Budget card */}
-        <Card className="mb-10">
+        <div
+          className="rounded-2xl p-6 lg:p-8 mb-10"
+          style={{
+            background: '#fff',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)',
+            border: '1px solid rgba(0,0,0,0.06)',
+          }}
+        >
           <div className="lg:grid lg:grid-cols-2 lg:gap-10">
             <div>
-              <label className="block font-mono text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-3" htmlFor="budR">
+              <label
+                className="block font-mono text-[10px] tracking-[0.28em] uppercase mb-3"
+                style={{ color: '#aaa' }}
+                htmlFor="budR"
+              >
                 Weekly budget
               </label>
               <div className="flex items-baseline gap-2 mb-0.5">
-                <span className="font-serif text-[24px] text-ink-soft">$</span>
+                <span className="font-serif text-[24px]" style={{ color: '#ccc' }}>$</span>
                 <input
                   type="number"
                   inputMode="decimal"
@@ -114,9 +140,10 @@ export function Plan({ announce }: PlanProps) {
                   value={budget}
                   aria-label="Weekly budget in dollars"
                   onChange={(e) => setBudget(parseFloat(e.target.value))}
-                  className="font-serif text-[36px] w-28 border-none bg-transparent text-ink p-0 border-b-[1.5px] border-line focus:outline-none"
+                  className="font-serif text-[36px] w-28 border-none bg-transparent p-0 focus:outline-none"
+                  style={{ color: '#111', borderBottom: '1.5px solid #e5e5e5' }}
                 />
-                <span className="font-mono text-[12px] text-ink-soft ml-auto">{f(budget / 7)} / day</span>
+                <span className="font-mono text-[12px] ml-auto" style={{ color: '#aaa' }}>{f(budget / 7)} / day</span>
               </div>
               <input
                 id="budR"
@@ -134,28 +161,39 @@ export function Plan({ announce }: PlanProps) {
               <GapBlock v={v} budget={budget} hhLabel={hhLabel} />
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Section header */}
         <div className="flex items-baseline justify-between mb-4">
-          <h3 className="font-serif text-[22px]">Your 7 days</h3>
-          <span className="font-mono text-[12px] text-ink-soft">21 meals · click any to swap</span>
+          <h3 className="font-serif text-[22px] font-medium" style={{ color: '#111' }}>Your 7 days</h3>
+          <span className="font-mono text-[11.5px]" style={{ color: '#aaa' }}>21 meals · click any to swap</span>
         </div>
 
         {/* ── Bento grid ── */}
         <div className="overflow-x-auto -mx-5 lg:-mx-10 px-5 lg:px-10 mb-10">
           <div
-            className="rounded-2xl border border-line overflow-hidden bg-line min-w-[680px]"
-            style={{ display: 'grid', gap: '1px', gridTemplateColumns: '56px repeat(7, minmax(0, 1fr))' }}
+            className="overflow-hidden min-w-[680px]"
+            style={{
+              display: 'grid',
+              gap: '1px',
+              gridTemplateColumns: '52px repeat(7, minmax(0, 1fr))',
+              background: 'rgba(0,0,0,0.08)',
+              borderRadius: '18px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)',
+            }}
           >
             {/* Day header row */}
-            <div className="bg-paper" aria-hidden="true" />
+            <div style={{ background: '#f0ece5' }} aria-hidden="true" />
             {days.map((d, i) => {
               const dayCost = SLOTS.reduce((s, slot) => s + mealAt(picks, i, slot, dietKey).cost * n * eff, 0);
               return (
-                <div key={i} className="bg-paper px-2 py-3 text-center">
-                  <div className="font-mono text-[10px] tracking-wider uppercase font-bold text-ink-soft">{d.dow}</div>
-                  <div className="font-mono text-[11px] font-bold text-accent-ink mt-1">{f(dayCost)}</div>
+                <div key={i} className="px-2 py-3 text-center" style={{ background: '#f0ece5' }}>
+                  <div className="font-mono text-[10px] tracking-wider uppercase font-bold" style={{ color: '#999' }}>
+                    {d.dow}
+                  </div>
+                  <div className="font-mono text-[11.5px] font-bold mt-1" style={{ color: '#2c5e3f' }}>
+                    {f(dayCost)}
+                  </div>
                 </div>
               );
             })}
@@ -163,11 +201,11 @@ export function Plan({ announce }: PlanProps) {
             {/* Slot rows */}
             {SLOTS.map((slot) => (
               <Fragment key={slot}>
-                <div className="bg-paper flex items-center justify-center py-4 px-1">
+                <div className="flex items-center justify-center py-4 px-1" style={{ background: '#f0ece5' }}>
                   <span
                     aria-hidden="true"
-                    className="font-mono text-[8.5px] tracking-[0.15em] uppercase text-ink-soft"
-                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                    className="font-mono text-[8px] tracking-[0.18em] uppercase"
+                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', color: '#bbb' }}
                   >
                     {SLOT_LABEL[slot]}
                   </span>
@@ -179,12 +217,18 @@ export function Plan({ announce }: PlanProps) {
                       key={i}
                       onClick={() => openMeal(i, slot)}
                       aria-label={`${SLOT_LABEL[slot]}: ${d.dow} ${m.name}, ${f(m.cost * n * eff)}. Click to view or swap`}
-                      className="bg-surface text-left px-3 py-3 hover:bg-accent-soft transition-colors min-h-[90px] flex flex-col justify-between group"
+                      className="text-left px-3 py-3 min-h-[96px] flex flex-col justify-between group transition-colors"
+                      style={{ background: '#fff' }}
+                      onMouseOver={(e) => (e.currentTarget.style.background = '#f5faf6')}
+                      onMouseOut={(e) => (e.currentTarget.style.background = '#fff')}
                     >
-                      <span className="text-[12.5px] font-medium leading-snug text-ink group-hover:text-accent-ink transition-colors line-clamp-3">
+                      <span
+                        className="text-[12.5px] font-medium leading-snug line-clamp-3 transition-colors"
+                        style={{ color: '#222' }}
+                      >
                         {m.name}
                       </span>
-                      <span className="font-mono text-[11px] font-bold text-accent-ink mt-2">
+                      <span className="font-mono text-[11px] font-bold mt-2" style={{ color: '#2c5e3f' }}>
                         {f(m.cost * n * eff)}
                       </span>
                     </button>
@@ -212,15 +256,24 @@ export function Plan({ announce }: PlanProps) {
         )}
 
         {/* Week total */}
-        <div className="flex justify-between items-baseline border-t-2 border-ink pt-3 mb-8">
-          <span className="font-serif text-xl">Week total</span>
-          <span className="font-mono text-[17px] font-bold">{f(v.total)}</span>
+        <div className="flex justify-between items-baseline pt-3 mb-8" style={{ borderTop: '2px solid #222' }}>
+          <span className="font-serif text-xl" style={{ color: '#111' }}>Week total</span>
+          <span className="font-mono text-[17px] font-bold" style={{ color: '#111' }}>{f(v.total)}</span>
         </div>
 
         <NutritionCard v={v} hhLabel={hhLabel} treat={treat} meterReady={meterReady} budget={budget} />
 
         <div className="flex flex-col sm:flex-row gap-3 mt-8">
-          <PrimaryButton onClick={() => setScreen('list')}>Get my shopping list</PrimaryButton>
+          <button
+            onClick={() => setScreen('list')}
+            className="flex-1 py-4 rounded-2xl font-bold text-[16px] text-white transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #2c5e3f 0%, #1d3e29 100%)',
+              boxShadow: '0 4px 14px rgba(13,24,16,0.25)',
+            }}
+          >
+            Get my shopping list
+          </button>
           <SecondaryButton onClick={() => window.print()}>Save as PDF</SecondaryButton>
         </div>
       </div>
