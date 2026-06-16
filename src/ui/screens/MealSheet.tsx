@@ -115,6 +115,13 @@ export function MealSheet({ onClose, announce }: MealSheetProps) {
             ))}
           </div>
 
+          <span className="block text-[12.5px] font-bold tracking-wide uppercase text-ink-soft">How to make it</span>
+          <ol className="my-2 mb-[18px] list-decimal pl-5 space-y-1.5 text-[14px] leading-snug">
+            {meal.recipe.map((step, i) => (
+              <li key={i}>{step}</li>
+            ))}
+          </ol>
+
           <span className="block text-[12.5px] font-bold tracking-wide uppercase text-ink-soft" id="swapHead">
             Swap this {SLOT_LABEL[selected.slot].toLowerCase()} ({pool.length} that fit {diet.toLowerCase()})
           </span>

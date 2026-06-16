@@ -50,7 +50,7 @@ export const PANTRY: Sku[] = [
   { item: 'Peanut butter', aisle: 'Protein & beans', packLabel: '16 oz jar', packPrice: 3.4, packServings: 14 },
   { item: 'Chicken thigh', aisle: 'Protein & beans', packLabel: '3 lb pack', packPrice: 8.0, packServings: 6 },
   { item: 'Chicken', aisle: 'Protein & beans', packLabel: '3 lb pack', packPrice: 8.0, packServings: 6 },
-  { item: 'Ground beef', aisle: 'Protein & beans', packLabel: '1 lb', packPrice: 5.4, packServings: 3 },
+  { item: 'Ground beef', aisle: 'Protein & beans', packLabel: '1 lb', packPrice: 6.0, packServings: 3 },
   { item: 'Canned tuna', aisle: 'Protein & beans', packLabel: 'can', packPrice: 1.3, packServings: 1 },
   { item: 'Canned salmon', aisle: 'Protein & beans', packLabel: 'can', packPrice: 2.6, packServings: 1.5 },
   { item: 'Chia seeds', aisle: 'Protein & beans', packLabel: '12 oz bag', packPrice: 5.0, packServings: 8 },

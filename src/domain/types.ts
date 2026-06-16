@@ -18,6 +18,7 @@ export interface Meal {
   fat: number;
   diets: Diet[];
   ingredients: Ingredient[];
+  recipe: string[];
 }
 
 export interface Household {
