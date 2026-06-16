@@ -2,8 +2,12 @@ import { create } from 'zustand';
 import { assembleWeek } from '../domain/plan';
 import { DIET_KEY } from '../domain/plan';
 import type { Diet, DietLabel, WeekPicks } from '../domain/types';
+import { generateWeekPlan } from '../integrations/gemini';
+import { fetchLivePrices, findLocationId, lookupBarcode, type KrogerProduct } from '../integrations/kroger';
+import { hasGemini, hasKroger } from '../integrations/env';
 
 export type Screen = 'welcome' | 'setup' | 'plan' | 'list';
+export type AsyncStatus = 'idle' | 'loading' | 'done' | 'error';
 
 export interface SelectedMeal {
   day: number;
@@ -22,6 +26,24 @@ interface SessionState {
   edited: boolean;
   saved: boolean;
   selected: SelectedMeal | null;
+
+  aiStatus: AsyncStatus;
+  generateWithAI: () => Promise<void>;
+
+  zip: string;
+  locationId: string | null;
+  locationStatus: AsyncStatus;
+  livePrices: Map<string, number>;
+  setZip: (zip: string) => void;
+  refreshLivePrices: (itemNames: string[]) => Promise<void>;
+
+  barcodeStatus: AsyncStatus;
+  barcodeResult: KrogerProduct | null;
+  scanBarcode: (upc: string) => Promise<void>;
+  clearBarcode: () => void;
+  scannerOpen: boolean;
+  openScanner: () => void;
+  closeScanner: () => void;
 
   setScreen: (s: Screen) => void;
   setBudget: (n: number) => void;
@@ -50,6 +72,15 @@ export const useSession = create<SessionState>((set, get) => ({
   edited: false,
   saved: false,
   selected: null,
+
+  aiStatus: 'idle',
+  zip: '',
+  locationId: null,
+  locationStatus: 'idle',
+  livePrices: new Map(),
+  barcodeStatus: 'idle',
+  barcodeResult: null,
+  scannerOpen: false,
 
   setScreen: (s) => set({ screen: s }),
   setBudget: (n) => set({ budget: clampBudget(n) }),
@@ -85,6 +116,57 @@ export const useSession = create<SessionState>((set, get) => ({
   openMeal: (day, slot) => set({ selected: { day, slot } }),
   closeMeal: () => set({ selected: null }),
   markSaved: () => set({ saved: true }),
+
+  generateWithAI: async () => {
+    if (!hasGemini) return;
+    set({ aiStatus: 'loading' });
+    const { diet, budget } = get();
+    const key = DIET_KEY[diet];
+    const plan = await generateWeekPlan(key, budget);
+    if (plan) {
+      set({ picks: plan, picksDiet: key, edited: false, aiStatus: 'done' });
+    } else {
+      set({ aiStatus: 'error' });
+    }
+  },
+
+  setZip: (zip) => set({ zip, locationId: null, locationStatus: 'idle', livePrices: new Map() }),
+
+  refreshLivePrices: async (itemNames) => {
+    if (!hasKroger) return;
+    const { zip } = get();
+    if (!zip) return;
+    set({ locationStatus: 'loading' });
+    let locationId = get().locationId;
+    if (!locationId) {
+      locationId = await findLocationId(zip);
+      if (!locationId) {
+        set({ locationStatus: 'error' });
+        return;
+      }
+      set({ locationId });
+    }
+    const prices = await fetchLivePrices(itemNames, locationId);
+    set({ livePrices: prices, locationStatus: 'done' });
+  },
+
+  scanBarcode: async (upc) => {
+    if (!hasKroger) return;
+    set({ barcodeStatus: 'loading', barcodeResult: null });
+    let locationId = get().locationId;
+    if (!locationId && get().zip) locationId = await findLocationId(get().zip);
+    if (!locationId) {
+      set({ barcodeStatus: 'error' });
+      return;
+    }
+    set({ locationId });
+    const product = await lookupBarcode(upc, locationId);
+    set({ barcodeResult: product, barcodeStatus: product ? 'done' : 'error' });
+  },
+
+  clearBarcode: () => set({ barcodeResult: null, barcodeStatus: 'idle' }),
+  openScanner: () => set({ scannerOpen: true }),
+  closeScanner: () => set({ scannerOpen: false, barcodeResult: null, barcodeStatus: 'idle' }),
 }));
 
 export function householdOf(state: Pick<SessionState, 'adults' | 'kids'>) {

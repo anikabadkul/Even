@@ -1,17 +1,30 @@
 import { useEffect, useRef } from 'react';
-import { BackButton, Chip, PrimaryButton } from '../components/Button';
+import { BackButton, Chip, PrimaryButton, SecondaryButton } from '../components/Button';
 import { Label } from '../components/Card';
 import { useSession } from '../../state/session';
 import { floorFor } from '../../domain/budget';
 import { householdLabel } from '../../domain/nutrition';
+import { hasGemini } from '../../integrations/env';
 import { f } from '../format';
 import type { DietLabel } from '../../domain/types';
 
 const DIETS: DietLabel[] = ['Vegan', 'Vegetarian', 'Omnivore', 'Halal', 'Gluten-free'];
 
 export function Setup() {
-  const { budget, adults, kids, diet, setScreen, setBudget, setAdults, setKids, setDiet, rebuildIfDietChanged } =
-    useSession();
+  const {
+    budget,
+    adults,
+    kids,
+    diet,
+    aiStatus,
+    setScreen,
+    setBudget,
+    setAdults,
+    setKids,
+    setDiet,
+    rebuildIfDietChanged,
+    generateWithAI,
+  } = useSession();
   const headRef = useRef<HTMLHeadingElement>(null);
   const liveRef = useRef<HTMLDivElement>(null);
 
@@ -108,6 +121,19 @@ export function Setup() {
       </div>
 
       <div className="sticky bottom-0 px-5 pb-[calc(18px+env(safe-area-inset-bottom))] pt-3.5 bg-gradient-to-t from-surface from-[24%] to-transparent">
+        {hasGemini && (
+          <SecondaryButton
+            className="mb-2.5"
+            disabled={aiStatus === 'loading'}
+            onClick={async () => {
+              await generateWithAI();
+              if (useSession.getState().aiStatus === 'error') rebuildIfDietChanged();
+              setScreen('plan');
+            }}
+          >
+            {aiStatus === 'loading' ? 'Asking Gemini…' : '✦ Generate my week with AI'}
+          </SecondaryButton>
+        )}
         <PrimaryButton
           onClick={() => {
             rebuildIfDietChanged();
@@ -116,6 +142,11 @@ export function Setup() {
         >
           Build my week →
         </PrimaryButton>
+        {aiStatus === 'error' && (
+          <p className="text-[12.5px] text-ink-soft mt-2 text-center">
+            AI plan didn't come through, so we built your week the usual way.
+          </p>
+        )}
       </div>
       <div ref={liveRef} className="sr-only" aria-live="polite" />
     </div>
