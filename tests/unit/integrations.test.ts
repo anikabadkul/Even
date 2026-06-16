@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { buildGeminiPrompt, parseGeminiPlan } from '../../src/integrations/gemini';
+import { buildWeekPlanPrompt, parseWeekPlanResponse } from '../../src/integrations/aiPlan';
 import { applyLivePrices, extractProduct } from '../../src/integrations/kroger';
 import { eligibleMeals, mealAt, SLOTS } from '../../src/domain/plan';
 import type { PurchaseLine } from '../../src/domain/shopping';
 
-describe('gemini integration', () => {
+describe('shared AI plan prompt/response handling (used by both Gemini and OpenAI)', () => {
   it('builds a prompt that lists every eligible meal id for the diet', () => {
-    const prompt = buildGeminiPrompt('vegan', 50);
+    const prompt = buildWeekPlanPrompt('vegan', 50);
     for (const slot of SLOTS) {
       for (const meal of eligibleMeals(slot, 'vegan')) {
         expect(prompt).toContain(meal.id);
@@ -20,7 +20,7 @@ describe('gemini integration', () => {
       SLOTS.map((slot) => [slot, eligibleMeals(slot, diet)[0].id]),
     );
     const response = JSON.stringify(Object.fromEntries([0, 1, 2, 3, 4, 5, 6].map((d) => [d, day])));
-    const picks = parseGeminiPlan(response, diet);
+    const picks = parseWeekPlanResponse(response, diet);
     expect(picks).not.toBeNull();
     for (let d = 0; d < 7; d++) {
       for (const slot of SLOTS) {
@@ -35,25 +35,25 @@ describe('gemini integration', () => {
     const day = Object.fromEntries(SLOTS.map((slot) => [slot, eligibleMeals(slot, diet)[0].id]));
     const body = Object.fromEntries([0, 1, 2, 3, 4, 5, 6].map((d) => [d, day]));
     const response = '```json\n' + JSON.stringify(body) + '\n```';
-    expect(parseGeminiPlan(response, diet)).not.toBeNull();
+    expect(parseWeekPlanResponse(response, diet)).not.toBeNull();
   });
 
   it('rejects a response missing a day', () => {
     const diet = 'omnivore';
     const day = Object.fromEntries(SLOTS.map((slot) => [slot, eligibleMeals(slot, diet)[0].id]));
     const body = Object.fromEntries([0, 1, 2, 3, 4, 5].map((d) => [d, day])); // missing day 6
-    expect(parseGeminiPlan(JSON.stringify(body), diet)).toBeNull();
+    expect(parseWeekPlanResponse(JSON.stringify(body), diet)).toBeNull();
   });
 
   it('rejects a response referencing an unknown meal id', () => {
     const diet = 'omnivore';
     const day = Object.fromEntries(SLOTS.map((slot) => [slot, 'not-a-real-id']));
     const body = Object.fromEntries([0, 1, 2, 3, 4, 5, 6].map((d) => [d, day]));
-    expect(parseGeminiPlan(JSON.stringify(body), diet)).toBeNull();
+    expect(parseWeekPlanResponse(JSON.stringify(body), diet)).toBeNull();
   });
 
   it('rejects malformed JSON', () => {
-    expect(parseGeminiPlan('not json at all', 'omnivore')).toBeNull();
+    expect(parseWeekPlanResponse('not json at all', 'omnivore')).toBeNull();
   });
 });
 

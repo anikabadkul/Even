@@ -2,9 +2,10 @@ import { create } from 'zustand';
 import { assembleWeek } from '../domain/plan';
 import { DIET_KEY } from '../domain/plan';
 import type { Diet, DietLabel, WeekPicks } from '../domain/types';
-import { generateWeekPlan } from '../integrations/gemini';
+import { generateWeekPlan as generateWeekPlanOpenAI } from '../integrations/openai';
+import { generateWeekPlan as generateWeekPlanGemini } from '../integrations/gemini';
 import { fetchLivePrices, findLocationId, lookupBarcode, type KrogerProduct } from '../integrations/kroger';
-import { hasGemini, hasKroger } from '../integrations/env';
+import { hasAI, hasOpenAI, hasKroger } from '../integrations/env';
 
 export type Screen = 'welcome' | 'setup' | 'plan' | 'list';
 export type AsyncStatus = 'idle' | 'loading' | 'done' | 'error';
@@ -118,11 +119,13 @@ export const useSession = create<SessionState>((set, get) => ({
   markSaved: () => set({ saved: true }),
 
   generateWithAI: async () => {
-    if (!hasGemini) return;
+    if (!hasAI) return;
     set({ aiStatus: 'loading' });
     const { diet, budget } = get();
     const key = DIET_KEY[diet];
-    const plan = await generateWeekPlan(key, budget);
+    const plan = hasOpenAI
+      ? (await generateWeekPlanOpenAI(key, budget)) ?? (await generateWeekPlanGemini(key, budget))
+      : await generateWeekPlanGemini(key, budget);
     if (plan) {
       set({ picks: plan, picksDiet: key, edited: false, aiStatus: 'done' });
     } else {
