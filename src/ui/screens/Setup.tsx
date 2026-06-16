@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { Chip, PrimaryButton, SecondaryButton } from '../components/Button';
 import { useSession } from '../../state/session';
 import { floorFor } from '../../domain/budget';
 import { householdLabel } from '../../domain/nutrition';
@@ -8,28 +7,11 @@ import type { DietLabel } from '../../domain/types';
 
 const DIETS: DietLabel[] = ['Vegan', 'Vegetarian', 'Omnivore', 'Halal', 'Gluten-free'];
 
-const BULLETS = [
-  'Honest about the nutrition gap',
-  'No account. No cost. Ever.',
-  'USDA-based pricing',
-  'Works offline',
-];
-
 export function Setup() {
   const {
-    budget,
-    adults,
-    kids,
-    diet,
-    aiStatus,
-    capabilities,
-    setScreen,
-    setBudget,
-    setAdults,
-    setKids,
-    setDiet,
-    rebuildIfDietChanged,
-    generateWithAI,
+    budget, adults, kids, diet, aiStatus, capabilities,
+    setScreen, setBudget, setAdults, setKids, setDiet,
+    rebuildIfDietChanged, generateWithAI,
   } = useSession();
   const headRef = useRef<HTMLHeadingElement>(null);
 
@@ -42,167 +24,185 @@ export function Setup() {
   const hh = householdLabel({ adults, kids });
 
   return (
-    <main className="min-h-screen lg:grid lg:grid-cols-2 animate-[fade-in_.26s_ease_both]">
-      {/* Left panel — sticky brand/editorial */}
-      <div className="bg-paper px-10 lg:px-14 py-16 lg:sticky lg:top-0 lg:h-screen flex flex-col justify-between">
-        <div>
-          <div className="font-mono text-xs tracking-[0.16em] uppercase text-ink-soft mb-6">
-            Free meal planner · 2026
-          </div>
-          <div className="font-serif font-medium text-[72px] leading-none tracking-tight mb-4">Even</div>
-          <div className="font-serif italic text-[25px] leading-[1.28] mb-6 max-w-[340px]">
+    <main className="min-h-screen lg:grid lg:grid-cols-2 animate-[fade-in_.3s_ease_both]">
+
+      {/* ── Left panel: dark editorial ── */}
+      <div className="bg-[#141f16] lg:sticky lg:top-0 lg:h-screen flex flex-col px-10 lg:px-14 py-14 lg:py-16 select-none">
+        <span className="font-mono text-[10.5px] tracking-[0.25em] uppercase text-[#3d6648]">
+          Free meal planner · 2026
+        </span>
+
+        <div className="flex-1 flex flex-col justify-center py-10 lg:py-0">
+          <h1
+            ref={headRef}
+            tabIndex={-1}
+            className="font-serif font-medium text-[#eee8d8] outline-none leading-none tracking-tight"
+            style={{ fontSize: 'clamp(80px, 11vw, 152px)' }}
+          >
+            Even
+          </h1>
+          <p className="font-serif italic text-[#7faa89] mt-5 leading-snug max-w-[300px]"
+             style={{ fontSize: 'clamp(17px, 2vw, 23px)' }}>
             Eat well on what you actually have.
-          </div>
-          <div className="flex flex-col gap-2.5 mt-2">
-            {BULLETS.map((t) => (
-              <div key={t} className="flex items-center gap-3 text-[15px]">
-                <i className="w-[7px] h-[7px] rounded-full bg-accent flex-none inline-block" aria-hidden="true" />
-                {t}
-              </div>
-            ))}
-          </div>
+          </p>
+          <p className="text-[#3d6648] mt-5 text-[14px] leading-relaxed max-w-[270px]">
+            A 7-day plan built around your grocery budget — honest about where a tight budget falls short.
+          </p>
         </div>
-        <p className="text-xs text-ink-soft mt-8 max-w-[320px]">
-          Built on the USDA Thrifty Food Plan and Dietary Guidelines. Free and independent — no account, nothing
-          saved.
-        </p>
+
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-6 border-t border-[#1f3024]">
+          {['No account', 'Works offline', 'USDA-based pricing'].map((t) => (
+            <span key={t} className="font-mono text-[10px] tracking-widest uppercase text-[#2f4d36]">{t}</span>
+          ))}
+        </div>
       </div>
 
-      {/* Right panel — scrollable form */}
-      <div className="px-8 lg:px-14 py-14 lg:py-20 flex flex-col gap-10 lg:max-w-[560px] lg:mx-auto w-full">
-        <h2
-          ref={headRef}
-          tabIndex={-1}
-          className="font-serif text-3xl outline-none"
-        >
-          Set up your week
-        </h2>
+      {/* ── Right panel: form ── */}
+      <div className="bg-surface flex flex-col min-h-screen">
+        <div className="flex-1 px-8 lg:px-14 py-12 lg:py-16 space-y-9">
 
-        {/* Budget section */}
-        <div>
-          <label
-            className="block text-xs font-mono uppercase tracking-widest text-ink-soft mb-3"
-            htmlFor="bud"
-          >
-            Weekly grocery budget
-          </label>
-          <div className="flex items-center gap-3 mb-3">
-            <button
-              type="button"
-              aria-label="Lower budget"
-              className="w-10 h-10 flex-none rounded-[11px] border-[1.5px] border-line bg-surface text-xl text-ink leading-none"
-              onClick={() => setBudget(budget - 0.5)}
-            >
-              −
-            </button>
-            <div className="flex-1 text-center border-b-2 border-ink pb-1.5">
-              <div className="flex items-baseline justify-center">
-                <span className="font-serif text-[28px]">$</span>
-                <input
-                  id="bud"
-                  type="number"
-                  inputMode="decimal"
-                  min={10}
-                  max={400}
-                  step={0.5}
-                  value={budget}
-                  aria-label="Weekly grocery budget in dollars"
-                  onChange={(e) => setBudget(parseFloat(e.target.value))}
-                  className="font-serif text-[52px] w-[160px] border-none bg-transparent text-center text-ink p-0 focus:outline-none"
-                />
+          <h2 className="font-serif text-[30px] tracking-tight text-ink">Set up your week</h2>
+
+          {/* Budget */}
+          <section aria-label="Weekly grocery budget">
+            <p className="font-mono text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-5">
+              Weekly grocery budget
+            </p>
+            <div className="flex items-center gap-4">
+              <button
+                aria-label="Decrease budget by 50 cents"
+                onClick={() => setBudget(Math.max(10, budget - 0.5))}
+                className="w-11 h-11 rounded-full border border-line bg-paper font-bold text-xl flex items-center justify-center hover:border-ink transition-colors flex-none"
+              >−</button>
+
+              <div className="flex-1 text-center">
+                <div className="flex items-start justify-center">
+                  <span className="font-serif text-[30px] text-ink-soft mt-3 leading-none">$</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={10} max={400} step={0.5}
+                    value={budget}
+                    aria-label="Weekly grocery budget in dollars"
+                    onChange={(e) => setBudget(parseFloat(e.target.value))}
+                    className="font-serif text-[68px] leading-none font-medium w-[168px] bg-transparent border-none text-center text-ink focus:outline-none"
+                  />
+                </div>
+                <p className="font-mono text-[11.5px] text-ink-soft -mt-1">{f(budget / 7)} / day</p>
               </div>
-              <div className="text-xs font-mono uppercase tracking-widest text-ink-soft">{f(budget / 7)} / day</div>
+
+              <button
+                aria-label="Increase budget by 50 cents"
+                onClick={() => setBudget(Math.min(400, budget + 0.5))}
+                className="w-11 h-11 rounded-full border border-line bg-paper font-bold text-xl flex items-center justify-center hover:border-ink transition-colors flex-none"
+              >+</button>
             </div>
-            <button
-              type="button"
-              aria-label="Raise budget"
-              className="w-10 h-10 flex-none rounded-[11px] border-[1.5px] border-line bg-surface text-xl text-ink leading-none"
-              onClick={() => setBudget(budget + 0.5)}
-            >
-              +
-            </button>
-          </div>
-          <input
-            type="range"
-            min={10}
-            max={300}
-            step={0.5}
-            value={Math.min(300, budget)}
-            aria-label="Adjust weekly budget with slider"
-            onChange={(e) => setBudget(parseFloat(e.target.value))}
-            className="w-full"
-          />
-          <p className="text-[12.5px] text-ink-soft mt-2">
-            Not sure? The average SNAP benefit is about $43 a week per person.
-          </p>
+            <input
+              type="range"
+              min={10} max={300} step={0.5}
+              value={Math.min(300, budget)}
+              aria-label="Adjust weekly budget with slider"
+              onChange={(e) => setBudget(parseFloat(e.target.value))}
+              className="w-full mt-4"
+            />
+            <p className="text-[12.5px] text-ink-soft mt-2">
+              Not sure? SNAP averages about $43/week per person.
+            </p>
+          </section>
+
+          {/* Household */}
+          <section aria-label="Household size">
+            <p className="font-mono text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-5">
+              Household
+            </p>
+            <div className="grid grid-cols-2 gap-5">
+              <div>
+                <p className="text-[13px] font-semibold text-ink mb-2.5">Adults</p>
+                <div role="group" aria-label="Number of adults" className="flex gap-2">
+                  {[1, 2, 3, 4].map((x) => (
+                    <button
+                      key={x}
+                      aria-pressed={adults === x}
+                      onClick={() => setAdults(x)}
+                      className={`flex-1 py-2.5 rounded-xl text-[14px] font-bold border-[1.5px] transition-all ${
+                        adults === x
+                          ? 'bg-accent border-accent text-white shadow-sm'
+                          : 'border-line text-ink hover:border-accent-ink bg-transparent'
+                      }`}
+                    >{x}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-[13px] font-semibold text-ink mb-2.5">Children</p>
+                <div role="group" aria-label="Number of children" className="flex gap-2">
+                  {[0, 1, 2, 3].map((x) => (
+                    <button
+                      key={x}
+                      aria-pressed={kids === x}
+                      onClick={() => setKids(x)}
+                      className={`flex-1 py-2.5 rounded-xl text-[14px] font-bold border-[1.5px] transition-all ${
+                        kids === x
+                          ? 'bg-accent border-accent text-white shadow-sm'
+                          : 'border-line text-ink hover:border-accent-ink bg-transparent'
+                      }`}
+                    >{x}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <p className="text-[12.5px] text-ink-soft mt-3">
+              A complete week for {hh} costs about {f(floor)} — the USDA minimum.
+            </p>
+          </section>
+
+          {/* Diet */}
+          <section aria-label="Dietary preference">
+            <p className="font-mono text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-5">
+              How do you eat?
+            </p>
+            <div role="group" aria-label="Dietary preference" className="flex flex-wrap gap-2">
+              {DIETS.map((d) => (
+                <button
+                  key={d}
+                  aria-pressed={diet === d}
+                  onClick={() => setDiet(d)}
+                  className={`px-5 py-2 rounded-full text-[14px] font-semibold border-[1.5px] transition-all ${
+                    diet === d
+                      ? 'bg-accent border-accent text-white shadow-sm'
+                      : 'border-line text-ink hover:border-accent-ink bg-transparent'
+                  }`}
+                >{d}</button>
+              ))}
+            </div>
+            <p className="text-[12.5px] text-ink-soft mt-3">Every meal respects this. Swap any meal later.</p>
+          </section>
         </div>
 
-        {/* Adults section */}
-        <div>
-          <div className="text-xs font-mono uppercase tracking-widest text-ink-soft mb-3">Adults</div>
-          <div role="group" aria-label="Number of adults" className="flex gap-2">
-            {[1, 2, 3, 4].map((x) => (
-              <Chip key={x} active={adults === x} className="flex-1" onClick={() => setAdults(x)}>
-                {x}
-              </Chip>
-            ))}
-          </div>
-        </div>
-
-        {/* Children section */}
-        <div>
-          <div className="text-xs font-mono uppercase tracking-widest text-ink-soft mb-3">Children</div>
-          <div role="group" aria-label="Number of children" className="flex gap-2 mb-3">
-            {[0, 1, 2, 3].map((x) => (
-              <Chip key={x} active={kids === x} className="flex-1" onClick={() => setKids(x)}>
-                {x}
-              </Chip>
-            ))}
-          </div>
-          <p className="text-[13px] text-ink-soft">
-            Kids need fewer calories, so this keeps the check honest. A complete week for {hh} costs about {f(floor)},
-            the USDA minimum.
-          </p>
-        </div>
-
-        {/* Diet section */}
-        <div>
-          <div className="text-xs font-mono uppercase tracking-widest text-ink-soft mb-3">How do you eat?</div>
-          <div role="group" aria-label="Dietary preference" className="flex flex-wrap gap-2 mb-2">
-            {DIETS.map((d) => (
-              <Chip key={d} active={diet === d} onClick={() => setDiet(d)}>
-                {d}
-              </Chip>
-            ))}
-          </div>
-          <p className="text-[13px] text-ink-soft mt-2">Every meal respects this. You can swap any meal later.</p>
-        </div>
-
-        {/* CTA section */}
-        <div className="pt-4 flex flex-col gap-2.5">
+        {/* Sticky CTA */}
+        <div className="sticky bottom-0 px-8 lg:px-14 pb-10 pt-4 bg-gradient-to-t from-surface from-50% to-transparent">
           {capabilities.ai && (
-            <SecondaryButton
+            <button
               disabled={aiStatus === 'loading'}
               onClick={async () => {
                 await generateWithAI();
                 if (useSession.getState().aiStatus === 'error') rebuildIfDietChanged();
                 setScreen('plan');
               }}
+              className="w-full py-3.5 rounded-2xl border-[1.5px] border-accent-ink text-accent-ink font-bold text-[15px] mb-3 hover:bg-accent-soft transition-colors disabled:opacity-50"
             >
-              {aiStatus === 'loading' ? 'Generating your week…' : '✦ Generate my week with AI'}
-            </SecondaryButton>
+              {aiStatus === 'loading' ? 'Generating your week…' : '✦ Generate with AI'}
+            </button>
           )}
-          <PrimaryButton
-            onClick={() => {
-              rebuildIfDietChanged();
-              setScreen('plan');
-            }}
+          <button
+            onClick={() => { rebuildIfDietChanged(); setScreen('plan'); }}
+            className="w-full py-4 rounded-2xl bg-accent text-white font-bold text-[16px] hover:bg-[#356b4c] transition-colors shadow-sm"
           >
             Build my week →
-          </PrimaryButton>
+          </button>
           {aiStatus === 'error' && (
-            <p className="text-[12.5px] text-ink-soft mt-2 text-center">
-              AI plan didn't come through, so we built your week the usual way.
+            <p className="text-[12px] text-ink-soft mt-2.5 text-center">
+              AI didn't respond — built the usual way instead.
             </p>
           )}
         </div>
