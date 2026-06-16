@@ -7,8 +7,6 @@ import type { DietLabel } from '../../domain/types';
 
 const DIETS: DietLabel[] = ['Vegan', 'Vegetarian', 'Omnivore', 'Halal', 'Gluten-free'];
 
-const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
-
 export function Setup() {
   const {
     budget, adults, kids, diet, aiStatus, capabilities,
@@ -22,204 +20,303 @@ export function Setup() {
   const size = Math.max(1, adults + kids);
   const floor = floorFor(size);
   const hh = householdLabel({ adults, kids });
+  const budgetDisplay = Math.round(budget);
 
   return (
-    <main className="min-h-screen lg:grid lg:grid-cols-2 animate-[fade-in_.35s_ease_both]">
+    <main className="min-h-screen lg:flex animate-[fade-in_.4s_ease_both]">
 
-      {/* ── Left: dark editorial ── */}
+      {/* ── Left: brand panel ── */}
       <div
-        className="relative lg:sticky lg:top-0 lg:h-screen flex flex-col px-10 lg:px-14 py-14 lg:py-16 overflow-hidden"
-        style={{ background: 'radial-gradient(ellipse at 20% 65%, #1d3323 0%, #0d1810 45%, #060c07 100%)' }}
+        className="relative lg:sticky lg:top-0 lg:h-screen lg:w-[46%] flex flex-col overflow-hidden"
+        style={{ background: '#080d08' }}
       >
-        {/* Grain texture */}
+        {/* Radial glow behind wordmark */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-[0.055] mix-blend-overlay"
-          style={{ backgroundImage: NOISE_SVG, backgroundSize: '192px 192px' }}
           aria-hidden="true"
+          className="absolute pointer-events-none"
+          style={{
+            top: '42%', left: '46%',
+            transform: 'translate(-50%, -50%)',
+            width: '140%', height: '60%',
+            background: 'radial-gradient(ellipse, rgba(52,110,72,0.28) 0%, rgba(30,60,38,0.1) 40%, transparent 70%)',
+            filter: 'blur(32px)',
+          }}
         />
 
-        {/* Content */}
-        <div className="relative flex flex-col h-full">
-          <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-[#2d5238]">
+        <div className="relative flex flex-col h-full px-10 lg:px-14 py-14 lg:py-16">
+          {/* Top label */}
+          <span
+            className="font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: '0.28em', color: '#1e3824' }}
+          >
             Free meal planner · 2026
           </span>
 
-          <div className="flex-1 flex flex-col justify-center py-10 lg:py-0">
+          {/* Wordmark — fills ~85% of column width */}
+          <div className="flex-1 flex flex-col justify-center">
             <h1
               ref={headRef}
               tabIndex={-1}
-              className="font-serif font-bold text-[#e8e0cc] outline-none tracking-[-0.035em]"
-              style={{ fontSize: 'clamp(88px, 12.5vw, 168px)', lineHeight: 0.9 }}
+              className="font-serif font-bold outline-none"
+              style={{
+                fontSize: 'clamp(88px, 17vw, 228px)',
+                lineHeight: 0.88,
+                letterSpacing: '-0.04em',
+                color: '#ddd6c4',
+              }}
             >
               Even
             </h1>
             <p
-              className="font-serif italic text-[#6b9e76] mt-6 leading-[1.25] max-w-[270px]"
-              style={{ fontSize: 'clamp(16px, 2vw, 22px)' }}
+              className="font-serif italic"
+              style={{
+                fontSize: 'clamp(17px, 2.2vw, 24px)',
+                lineHeight: 1.3,
+                color: '#3d6e4a',
+                marginTop: 'clamp(20px, 2.5vw, 32px)',
+                maxWidth: 280,
+              }}
             >
               Eat well on what you actually have.
             </p>
-            <p className="text-[13.5px] text-[#2e4d35] mt-4 max-w-[250px] leading-relaxed">
-              A 7-day plan built around your grocery budget — priced to the cent.
-            </p>
           </div>
 
-          <div
-            className="border-t pt-5 flex flex-col gap-2.5"
-            style={{ borderColor: 'rgba(255,255,255,0.05)' }}
-          >
-            {['Honest about the nutrition gap', 'No account · no cost · ever', 'USDA-based · works offline'].map((t) => (
-              <div key={t} className="flex items-center gap-2.5 text-[12px] text-[#2a4530]">
-                <span className="w-[5px] h-[5px] rounded-full bg-[#2a4530] flex-none" />
-                {t}
-              </div>
-            ))}
+          {/* Footer */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: 20 }}>
+            <p className="font-mono uppercase" style={{ fontSize: 10, letterSpacing: '0.22em', color: '#1a2e1f', lineHeight: 1.9 }}>
+              No account &nbsp;·&nbsp; No cost &nbsp;·&nbsp; Works offline
+              <br />
+              USDA Thrifty Food Plan · Dietary Guidelines
+            </p>
           </div>
         </div>
       </div>
 
       {/* ── Right: form ── */}
-      <div className="bg-white flex flex-col min-h-screen">
-        <div className="flex-1 px-8 lg:px-14 py-12 lg:py-16 lg:max-w-[520px] lg:mx-auto w-full">
-          <h2 className="font-serif text-[30px] tracking-[-0.02em] text-[#111] mb-10">
-            Set up your week
-          </h2>
+      <div className="lg:flex-1 flex flex-col min-h-screen" style={{ background: '#ffffff' }}>
+        <div
+          className="flex-1 px-8 lg:px-14 py-12 lg:py-16"
+          style={{ maxWidth: 540, marginLeft: 'auto', marginRight: 'auto', width: '100%' }}
+        >
 
-          {/* Budget */}
-          <div className="mb-10">
-            <p className="font-mono text-[10px] tracking-[0.28em] uppercase text-[#aaa] mb-5">
+          <h2 className="sr-only">Set up your week</h2>
+
+          {/* Budget ── hero of the form */}
+          <div style={{ marginBottom: 44 }}>
+            <p
+              className="font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: '0.28em', color: '#c0c0c0', marginBottom: 20 }}
+            >
               Weekly grocery budget
             </p>
-            <div className="flex items-center gap-4 mb-1">
+
+            <div className="flex items-center gap-5">
               <button
                 aria-label="Decrease budget"
-                onClick={() => setBudget(Math.max(10, budget - 0.5))}
-                className="w-10 h-10 rounded-full border border-[#e8e8e8] text-[#bbb] hover:border-[#333] hover:text-[#333] transition-all text-xl font-light flex items-center justify-center flex-none"
+                onClick={() => setBudget(Math.max(10, budget - 1))}
+                style={{
+                  width: 40, height: 40, borderRadius: '50%',
+                  border: '1.5px solid #ebebeb', color: '#c0c0c0',
+                  fontSize: 22, fontWeight: 300, display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', background: 'transparent',
+                  transition: 'border-color 0.15s, color 0.15s',
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#333'; }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = '#ebebeb'; e.currentTarget.style.color = '#c0c0c0'; }}
               >−</button>
-              <div className="flex-1 flex items-start justify-center gap-0.5">
-                <span className="font-serif text-[32px] text-[#ccc] mt-2.5 leading-none">$</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min={10} max={400} step={0.5}
-                  value={budget}
-                  aria-label="Weekly grocery budget in dollars"
-                  onChange={(e) => setBudget(parseFloat(e.target.value))}
-                  className="font-serif font-semibold text-[80px] leading-none w-[200px] bg-transparent border-none text-center text-[#111] focus:outline-none"
-                />
+
+              <div className="flex-1 text-center">
+                <div className="flex items-start justify-center" style={{ gap: 4 }}>
+                  <span
+                    className="font-serif"
+                    style={{ fontSize: 36, color: '#d0d0d0', marginTop: 14, lineHeight: 1 }}
+                  >$</span>
+                  <span
+                    className="font-serif font-bold"
+                    style={{ fontSize: 'clamp(64px, 7vw, 96px)', lineHeight: 1, letterSpacing: '-0.03em', color: '#111' }}
+                  >
+                    {budgetDisplay}
+                  </span>
+                </div>
+                <p
+                  className="font-mono"
+                  style={{ fontSize: 12, color: '#c0c0c0', marginTop: 4 }}
+                >
+                  {f(budget / 7)} per day
+                </p>
               </div>
+
               <button
                 aria-label="Increase budget"
-                onClick={() => setBudget(Math.min(400, budget + 0.5))}
-                className="w-10 h-10 rounded-full border border-[#e8e8e8] text-[#bbb] hover:border-[#333] hover:text-[#333] transition-all text-xl font-light flex items-center justify-center flex-none"
+                onClick={() => setBudget(Math.min(400, budget + 1))}
+                style={{
+                  width: 40, height: 40, borderRadius: '50%',
+                  border: '1.5px solid #ebebeb', color: '#c0c0c0',
+                  fontSize: 22, fontWeight: 300, display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', background: 'transparent',
+                  transition: 'border-color 0.15s, color 0.15s',
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#333'; }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = '#ebebeb'; e.currentTarget.style.color = '#c0c0c0'; }}
               >+</button>
             </div>
-            <p className="text-center font-mono text-[11.5px] text-[#bbb] mb-4">{f(budget / 7)} / day</p>
+
+            {/* Hidden accessible input for slider */}
             <input
               type="range"
-              min={10} max={300} step={0.5}
+              min={10} max={300} step={1}
               value={Math.min(300, budget)}
-              aria-label="Adjust weekly budget with slider"
+              aria-label="Weekly grocery budget slider"
               onChange={(e) => setBudget(parseFloat(e.target.value))}
               className="w-full"
+              style={{ marginTop: 20 }}
             />
-            <p className="text-[12.5px] text-[#bbb] mt-2">SNAP averages about $43/week per person.</p>
+            <p style={{ fontSize: 12.5, color: '#c8c8c8', marginTop: 6 }}>
+              SNAP averages about $43/week per person.
+            </p>
           </div>
 
-          {/* Adults */}
-          <div className="mb-8">
-            <p className="font-mono text-[10px] tracking-[0.28em] uppercase text-[#aaa] mb-4">Adults</p>
-            <div role="group" aria-label="Number of adults" className="flex gap-2">
-              {[1, 2, 3, 4].map((x) => (
-                <button
-                  key={x}
-                  aria-pressed={adults === x}
-                  onClick={() => setAdults(x)}
-                  className={`flex-1 py-3 rounded-xl text-[15px] font-bold border-[1.5px] transition-all duration-150 ${
-                    adults === x
-                      ? 'bg-[#0d1810] border-[#0d1810] text-white'
-                      : 'bg-transparent border-[#e8e8e8] text-[#333] hover:border-[#555]'
-                  }`}
-                >{x}</button>
-              ))}
+          {/* Household */}
+          <div style={{ marginBottom: 36 }}>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <p
+                  className="font-mono uppercase"
+                  style={{ fontSize: 10, letterSpacing: '0.28em', color: '#c0c0c0', marginBottom: 12 }}
+                >
+                  Adults
+                </p>
+                <div role="group" aria-label="Number of adults" className="flex gap-2">
+                  {[1, 2, 3, 4].map((x) => (
+                    <button
+                      key={x}
+                      aria-pressed={adults === x}
+                      onClick={() => setAdults(x)}
+                      style={{
+                        flex: 1, paddingTop: 10, paddingBottom: 10,
+                        borderRadius: 12, fontSize: 14, fontWeight: 700,
+                        border: adults === x ? '2px solid #0d1810' : '1.5px solid #e8e8e8',
+                        background: adults === x ? '#0d1810' : 'transparent',
+                        color: adults === x ? '#fff' : '#333',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                      }}
+                    >{x}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p
+                  className="font-mono uppercase"
+                  style={{ fontSize: 10, letterSpacing: '0.28em', color: '#c0c0c0', marginBottom: 12 }}
+                >
+                  Children
+                </p>
+                <div role="group" aria-label="Number of children" className="flex gap-2">
+                  {[0, 1, 2, 3].map((x) => (
+                    <button
+                      key={x}
+                      aria-pressed={kids === x}
+                      onClick={() => setKids(x)}
+                      style={{
+                        flex: 1, paddingTop: 10, paddingBottom: 10,
+                        borderRadius: 12, fontSize: 14, fontWeight: 700,
+                        border: kids === x ? '2px solid #0d1810' : '1.5px solid #e8e8e8',
+                        background: kids === x ? '#0d1810' : 'transparent',
+                        color: kids === x ? '#fff' : '#333',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                      }}
+                    >{x}</button>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Children */}
-          <div className="mb-8">
-            <p className="font-mono text-[10px] tracking-[0.28em] uppercase text-[#aaa] mb-4">Children</p>
-            <div role="group" aria-label="Number of children" className="flex gap-2">
-              {[0, 1, 2, 3].map((x) => (
-                <button
-                  key={x}
-                  aria-pressed={kids === x}
-                  onClick={() => setKids(x)}
-                  className={`flex-1 py-3 rounded-xl text-[15px] font-bold border-[1.5px] transition-all duration-150 ${
-                    kids === x
-                      ? 'bg-[#0d1810] border-[#0d1810] text-white'
-                      : 'bg-transparent border-[#e8e8e8] text-[#333] hover:border-[#555]'
-                  }`}
-                >{x}</button>
-              ))}
-            </div>
-            <p className="text-[12.5px] text-[#bbb] mt-2.5">
-              Complete week for {hh}: ~{f(floor)} (USDA minimum).
+            <p style={{ fontSize: 12.5, color: '#c0c0c0', marginTop: 12 }}>
+              A complete week for {hh} costs about {f(floor)} — the USDA minimum.
             </p>
           </div>
 
           {/* Diet */}
-          <div className="mb-10">
-            <p className="font-mono text-[10px] tracking-[0.28em] uppercase text-[#aaa] mb-4">How do you eat?</p>
+          <div>
+            <p
+              className="font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: '0.28em', color: '#c0c0c0', marginBottom: 12 }}
+            >
+              How do you eat?
+            </p>
             <div role="group" aria-label="Dietary preference" className="flex flex-wrap gap-2">
               {DIETS.map((d) => (
                 <button
                   key={d}
                   aria-pressed={diet === d}
                   onClick={() => setDiet(d)}
-                  className={`px-5 py-2.5 rounded-full text-[13.5px] font-semibold border-[1.5px] transition-all duration-150 ${
-                    diet === d
-                      ? 'bg-[#0d1810] border-[#0d1810] text-white'
-                      : 'bg-transparent border-[#e8e8e8] text-[#333] hover:border-[#555]'
-                  }`}
+                  style={{
+                    padding: '9px 20px',
+                    borderRadius: 999,
+                    fontSize: 13.5, fontWeight: 600,
+                    border: diet === d ? '2px solid #0d1810' : '1.5px solid #e8e8e8',
+                    background: diet === d ? '#0d1810' : 'transparent',
+                    color: diet === d ? '#fff' : '#333',
+                    cursor: 'pointer', transition: 'all 0.15s',
+                  }}
                 >{d}</button>
               ))}
             </div>
-            <p className="text-[12.5px] text-[#bbb] mt-2.5">Every meal respects this. Swap any meal later.</p>
+            <p style={{ fontSize: 12.5, color: '#c0c0c0', marginTop: 10 }}>
+              Every meal respects this. Swap any meal later.
+            </p>
           </div>
         </div>
 
-        {/* Sticky CTAs */}
-        <div className="sticky bottom-0 px-8 lg:px-14 pb-10 pt-5 bg-gradient-to-t from-white from-60% to-transparent">
-          <div className="lg:max-w-[520px] lg:mx-auto w-full">
-            {capabilities.ai && (
-              <button
-                disabled={aiStatus === 'loading'}
-                onClick={async () => {
-                  await generateWithAI();
-                  if (useSession.getState().aiStatus === 'error') rebuildIfDietChanged();
-                  setScreen('plan');
-                }}
-                className="w-full py-3.5 rounded-2xl border border-[#d0d0d0] text-[#555] font-bold text-[15px] mb-3 hover:border-[#aaa] hover:text-[#333] transition-all disabled:opacity-40"
-              >
-                {aiStatus === 'loading' ? 'Generating your week…' : '✦ Generate with AI'}
-              </button>
-            )}
+        {/* ── Sticky CTAs ── */}
+        <div
+          className="sticky bottom-0 px-8 lg:px-14 pb-10 pt-6"
+          style={{
+            background: 'linear-gradient(to top, #ffffff 70%, rgba(255,255,255,0))',
+            maxWidth: 540, marginLeft: 'auto', marginRight: 'auto', width: '100%',
+          }}
+        >
+          {capabilities.ai && (
             <button
-              onClick={() => { rebuildIfDietChanged(); setScreen('plan'); }}
-              className="w-full py-4 rounded-2xl font-bold text-[16px] text-white transition-all"
+              disabled={aiStatus === 'loading'}
+              onClick={async () => {
+                await generateWithAI();
+                if (useSession.getState().aiStatus === 'error') rebuildIfDietChanged();
+                setScreen('plan');
+              }}
               style={{
-                background: 'linear-gradient(135deg, #2c5e3f 0%, #1d3e29 100%)',
-                boxShadow: '0 4px 14px rgba(13,24,16,0.25), 0 1px 3px rgba(13,24,16,0.15)',
+                width: '100%', padding: '12px 0', marginBottom: 12,
+                borderRadius: 16, border: '1.5px solid #e8e8e8',
+                fontSize: 14.5, fontWeight: 600, color: '#555',
+                background: 'transparent', cursor: 'pointer',
+                transition: 'all 0.15s',
               }}
             >
-              Build my week →
+              {aiStatus === 'loading' ? 'Generating your week…' : '✦ Generate with AI'}
             </button>
-            {aiStatus === 'error' && (
-              <p className="text-[12px] text-[#bbb] mt-2.5 text-center">
-                AI didn't respond — built the usual way instead.
-              </p>
-            )}
-          </div>
+          )}
+          <button
+            onClick={() => { rebuildIfDietChanged(); setScreen('plan'); }}
+            style={{
+              width: '100%', padding: '17px 0',
+              borderRadius: 18, border: 'none',
+              fontSize: 16, fontWeight: 700, color: '#fff',
+              cursor: 'pointer',
+              background: 'linear-gradient(135deg, #2a5a3c 0%, #162d1e 100%)',
+              boxShadow: '0 6px 20px rgba(10,20,12,0.32), 0 1px 3px rgba(10,20,12,0.2)',
+              transition: 'box-shadow 0.2s, transform 0.2s',
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(10,20,12,0.38), 0 2px 6px rgba(10,20,12,0.2)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(10,20,12,0.32), 0 1px 3px rgba(10,20,12,0.2)'; }}
+          >
+            Build my week →
+          </button>
+          {aiStatus === 'error' && (
+            <p style={{ fontSize: 12, color: '#c0c0c0', marginTop: 10, textAlign: 'center' }}>
+              AI didn't respond — built the usual way instead.
+            </p>
+          )}
         </div>
       </div>
     </main>
