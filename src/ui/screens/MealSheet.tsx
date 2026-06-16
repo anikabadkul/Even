@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useSession } from '../../state/session';
-import { eligibleMeals, mealAt, SLOT_LABEL } from '../../domain/plan';
+import { eligibleMeals, mealAt, SLOT_LABEL, perishableIngredients } from '../../domain/plan';
 import { DIET_KEY } from '../../domain/plan';
 import { effFor } from '../../domain/money';
 import { f } from '../format';
@@ -65,6 +65,20 @@ export function MealSheet({ onClose, announce }: MealSheetProps) {
   const curIdx = picks[selected.day][selected.slot] % pool.length;
   const day = weekLabels()[selected.day];
 
+  // Perishables used by this meal that no other meal in the plan also uses.
+  // Swapping away would leave those packs with no other meal to finish them.
+  const currentPerishables = new Set(perishableIngredients(meal));
+  const otherMealPerishables = new Set(
+    Object.entries(picks).flatMap(([d, slots]) =>
+      Object.entries(slots).flatMap(([s, _idx]) => {
+        if (Number(d) === selected.day && s === selected.slot) return [];
+        const m = mealAt(picks, Number(d), s as 'B' | 'L' | 'D', dietKey);
+        return perishableIngredients(m);
+      }),
+    ),
+  );
+  const orphaned = [...currentPerishables].filter((item) => !otherMealPerishables.has(item));
+
   return (
     <div role="dialog" aria-modal="true" aria-label={meal.name} className="absolute inset-0 z-50">
       <div className="absolute inset-0 bg-[rgba(38,34,25,.45)] animate-[fade-in_.25s_ease_both]" onClick={onClose} />
@@ -125,6 +139,11 @@ export function MealSheet({ onClose, announce }: MealSheetProps) {
           <span className="block text-[12.5px] font-bold tracking-wide uppercase text-ink-soft" id="swapHead">
             Swap this {SLOT_LABEL[selected.slot].toLowerCase()} ({pool.length} that fit {diet.toLowerCase()})
           </span>
+          {orphaned.length > 0 && (
+            <p className="text-[12px] text-amber-700 mb-2 mt-1">
+              This is the only meal using {orphaned.join(' and ')} — swapping it out means that pack may go to waste.
+            </p>
+          )}
           <div className="my-2.5 mb-[18px]">
             {pool.map((m, idx) => {
               const isCur = idx === curIdx;

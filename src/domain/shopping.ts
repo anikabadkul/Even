@@ -18,6 +18,7 @@ export interface PurchaseLine extends AggregatedItem {
   packs: number;
   purchaseCost: number; // what you actually pay at the till
   leftoverServings: number;
+  perishableDays?: number; // set if the item spoils; undefined = shelf-stable
 }
 
 /** Aggregates ingredients across the assembled week, amortized-cost basis. */
@@ -67,7 +68,7 @@ export function buildShoppingList(items: AggregatedItem[], hh: Household): Purch
     const packs = Math.max(1, Math.ceil(servingsNeeded / sku.packServings));
     const purchaseCost = packs * sku.packPrice;
     const leftoverServings = packs * sku.packServings - servingsNeeded;
-    return { ...item, packLabel: sku.packLabel, packs, purchaseCost, leftoverServings };
+    return { ...item, packLabel: sku.packLabel, packs, purchaseCost, leftoverServings, perishableDays: sku.perishableDays };
   });
 }
 

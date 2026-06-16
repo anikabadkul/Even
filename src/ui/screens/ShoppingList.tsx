@@ -86,20 +86,30 @@ export function ShoppingList({ announce }: { announce: (msg: string) => void }) 
             <div key={cat} className="mt-4">
               <span className="block text-[12.5px] font-bold tracking-wide uppercase text-accent-ink">{cat}</span>
               <div className="mt-1">
-                {inCat.map((i) => (
-                  <div key={i.name} className="flex items-baseline gap-2.5 py-[11px] border-b border-line">
-                    <span className="flex-1 text-[15px] font-medium">
-                      {i.name}{' '}
-                      {!i.added && i.packLabel && (
-                        <span className="text-ink-soft font-mono text-xs">
-                          {i.packs} × {i.packLabel}
+                {inCat.map((i) => {
+                  const spoilRisk = !i.added && i.perishableDays && i.leftoverServings > 0;
+                  return (
+                    <div key={i.name} className="py-[11px] border-b border-line">
+                      <div className="flex items-baseline gap-2.5">
+                        <span className="flex-1 text-[15px] font-medium">
+                          {i.name}{' '}
+                          {!i.added && i.packLabel && (
+                            <span className="text-ink-soft font-mono text-xs">
+                              {i.packs} × {i.packLabel}
+                            </span>
+                          )}
+                          {i.added && <span className="text-ink-soft font-mono text-xs">added</span>}
                         </span>
+                        <span className="font-mono text-sm font-bold">{f(i.purchaseCost)}</span>
+                      </div>
+                      {spoilRisk && (
+                        <p className="text-[11.5px] text-amber-700 mt-0.5">
+                          ~{i.leftoverServings} serving{i.leftoverServings !== 1 ? 's' : ''} left over — use within {i.perishableDays} days or it may spoil. Swap in a meal that uses it to avoid waste.
+                        </p>
                       )}
-                      {i.added && <span className="text-ink-soft font-mono text-xs">added</span>}
-                    </span>
-                    <span className="font-mono text-sm font-bold">{f(i.purchaseCost)}</span>
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
