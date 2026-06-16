@@ -4,9 +4,8 @@ import { DIET_KEY } from '../../domain/plan';
 import { boosterItems, computeBudget, summarizeWeek } from '../../domain/budget';
 import { aggregateIngredients, buildShoppingList, AISLE_ORDER } from '../../domain/shopping';
 import { householdLabel } from '../../domain/nutrition';
-import { applyLivePrices } from '../../integrations/kroger';
 import { f } from '../format';
-import { BackButton, SecondaryButton } from '../components/Button';
+import { BackButton } from '../components/Button';
 import { Toast } from '../components/Toast';
 
 export function ShoppingList({ announce }: { announce: (msg: string) => void }) {
@@ -17,13 +16,6 @@ export function ShoppingList({ announce }: { announce: (msg: string) => void }) 
     diet,
     picks,
     setScreen,
-    capabilities,
-    zip,
-    setZip,
-    locationStatus,
-    livePrices,
-    refreshLivePrices,
-    openScanner,
   } = useSession();
   const headRef = useRef<HTMLSpanElement>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -39,11 +31,7 @@ export function ShoppingList({ announce }: { announce: (msg: string) => void }) 
   const v = useMemo(() => computeBudget(budget, hh, week), [budget, adults, kids, week]);
   const adds = v.boosterCost > 0.5 ? boosterItems(v.boosterCost) : [];
   const items = useMemo(() => aggregateIngredients(picks, dietKey, hh, adds), [picks, dietKey, adults, kids, adds]);
-  const baseLines = useMemo(() => buildShoppingList(items, hh), [items, adults, kids]);
-  const lines = useMemo(
-    () => (livePrices.size > 0 ? applyLivePrices(baseLines, livePrices) : baseLines),
-    [baseLines, livePrices],
-  );
+  const lines = useMemo(() => buildShoppingList(items, hh), [items, adults, kids]);
   const total = lines.reduce((s, i) => s + i.purchaseCost, 0);
   const hhLabel = householdLabel(hh);
 
@@ -90,38 +78,6 @@ export function ShoppingList({ announce }: { announce: (msg: string) => void }) 
 
       <div className="px-5 pt-[18px] flex-1">
         <p className="text-[15.5px] text-ink-soft mb-2">Everything for the week in one list, biggest cost first.</p>
-
-        {capabilities.kroger && (
-          <div className="flex items-center gap-2 mb-3">
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="ZIP code"
-              value={zip}
-              onChange={(e) => setZip(e.target.value)}
-              aria-label="ZIP code for live store prices"
-              className="flex-1 min-h-11 px-3 rounded-xl border-[1.5px] border-line bg-surface text-[15px]"
-            />
-            <SecondaryButton
-              className="w-auto px-3.5"
-              disabled={!zip || locationStatus === 'loading'}
-              onClick={() => refreshLivePrices(baseLines.map((l) => l.name))}
-            >
-              {locationStatus === 'loading' ? 'Checking…' : livePrices.size ? 'Refresh prices' : 'Use live prices'}
-            </SecondaryButton>
-          </div>
-        )}
-        {capabilities.kroger && locationStatus === 'error' && (
-          <p className="text-[12.5px] text-ink-soft mb-3">Couldn't find a store near that ZIP.</p>
-        )}
-        {capabilities.kroger && livePrices.size > 0 && (
-          <p className="text-[12.5px] text-accent-ink mb-3">Showing live prices for {livePrices.size} item(s).</p>
-        )}
-        {capabilities.kroger && (
-          <button className="font-mono text-[13px] font-bold text-accent-ink mb-3 underline" onClick={openScanner}>
-            Scan a barcode to check a price
-          </button>
-        )}
 
         {AISLE_ORDER.map((cat) => {
           const inCat = lines.filter((i) => i.aisle === cat);

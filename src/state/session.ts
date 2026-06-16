@@ -3,7 +3,6 @@ import { assembleWeek } from '../domain/plan';
 import { DIET_KEY } from '../domain/plan';
 import type { Diet, DietLabel, WeekPicks } from '../domain/types';
 import { generateWeekPlan } from '../integrations/aiPlanClient';
-import { fetchLivePrices, findLocationId, lookupBarcode, type KrogerProduct } from '../integrations/kroger';
 import { fetchCapabilities, type Capabilities } from '../integrations/env';
 
 export type Screen = 'welcome' | 'setup' | 'plan' | 'list';
@@ -33,21 +32,6 @@ interface SessionState {
   aiStatus: AsyncStatus;
   generateWithAI: () => Promise<void>;
 
-  zip: string;
-  locationId: string | null;
-  locationStatus: AsyncStatus;
-  livePrices: Map<string, number>;
-  setZip: (zip: string) => void;
-  refreshLivePrices: (itemNames: string[]) => Promise<void>;
-
-  barcodeStatus: AsyncStatus;
-  barcodeResult: KrogerProduct | null;
-  scanBarcode: (upc: string) => Promise<void>;
-  clearBarcode: () => void;
-  scannerOpen: boolean;
-  openScanner: () => void;
-  closeScanner: () => void;
-
   setScreen: (s: Screen) => void;
   setBudget: (n: number) => void;
   setAdults: (n: number) => void;
@@ -76,16 +60,9 @@ export const useSession = create<SessionState>((set, get) => ({
   saved: false,
   selected: null,
 
-  capabilities: { ai: false, kroger: false },
+  capabilities: { ai: false },
 
   aiStatus: 'idle',
-  zip: '',
-  locationId: null,
-  locationStatus: 'idle',
-  livePrices: new Map(),
-  barcodeStatus: 'idle',
-  barcodeResult: null,
-  scannerOpen: false,
 
   setScreen: (s) => set({ screen: s }),
   setBudget: (n) => set({ budget: clampBudget(n) }),
@@ -139,43 +116,6 @@ export const useSession = create<SessionState>((set, get) => ({
     }
   },
 
-  setZip: (zip) => set({ zip, locationId: null, locationStatus: 'idle', livePrices: new Map() }),
-
-  refreshLivePrices: async (itemNames) => {
-    if (!get().capabilities.kroger) return;
-    const { zip } = get();
-    if (!zip) return;
-    set({ locationStatus: 'loading' });
-    let locationId = get().locationId;
-    if (!locationId) {
-      locationId = await findLocationId(zip);
-      if (!locationId) {
-        set({ locationStatus: 'error' });
-        return;
-      }
-      set({ locationId });
-    }
-    const prices = await fetchLivePrices(itemNames, locationId);
-    set({ livePrices: prices, locationStatus: 'done' });
-  },
-
-  scanBarcode: async (upc) => {
-    if (!get().capabilities.kroger) return;
-    set({ barcodeStatus: 'loading', barcodeResult: null });
-    let locationId = get().locationId;
-    if (!locationId && get().zip) locationId = await findLocationId(get().zip);
-    if (!locationId) {
-      set({ barcodeStatus: 'error' });
-      return;
-    }
-    set({ locationId });
-    const product = await lookupBarcode(upc, locationId);
-    set({ barcodeResult: product, barcodeStatus: product ? 'done' : 'error' });
-  },
-
-  clearBarcode: () => set({ barcodeResult: null, barcodeStatus: 'idle' }),
-  openScanner: () => set({ scannerOpen: true }),
-  closeScanner: () => set({ scannerOpen: false, barcodeResult: null, barcodeStatus: 'idle' }),
 }));
 
 export function householdOf(state: Pick<SessionState, 'adults' | 'kids'>) {

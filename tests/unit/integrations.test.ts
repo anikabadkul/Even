@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildWeekPlanPrompt, parseWeekPlanResponse } from '../../src/integrations/aiPlan';
-import { applyLivePrices, extractProduct } from '../../src/integrations/krogerShared';
 import { eligibleMeals, mealAt, SLOTS } from '../../src/domain/plan';
-import type { PurchaseLine } from '../../src/domain/shopping';
 
 describe('shared AI plan prompt/response handling (used by both Gemini and OpenAI)', () => {
   it('builds a prompt that lists every eligible meal id for the diet', () => {
@@ -54,43 +52,5 @@ describe('shared AI plan prompt/response handling (used by both Gemini and OpenA
 
   it('rejects malformed JSON', () => {
     expect(parseWeekPlanResponse('not json at all', 'omnivore')).toBeNull();
-  });
-});
-
-describe('kroger integration', () => {
-  it('extracts the promo price when one is offered', () => {
-    const product = extractProduct({
-      description: 'Bananas',
-      items: [{ size: '1 lb', price: { regular: 0.59, promo: 0.39 } }],
-    });
-    expect(product).toEqual({ name: 'Bananas', price: 0.39, size: '1 lb' });
-  });
-
-  it('falls back to the regular price when there is no promo', () => {
-    const product = extractProduct({ description: 'Rice', items: [{ size: '2 lb', price: { regular: 3.49, promo: 0 } }] });
-    expect(product?.price).toBe(3.49);
-  });
-
-  it('returns null for a malformed or missing product record', () => {
-    expect(extractProduct(undefined)).toBeNull();
-    expect(extractProduct({ description: 'Empty' })).toBeNull();
-  });
-
-  it('overrides purchase cost with live price times pack count', () => {
-    const lines: PurchaseLine[] = [
-      { name: 'Rice', aisle: 'Grains & staples', uses: 1, amortizedCost: 1, added: false, packLabel: '2 lb', packs: 2, purchaseCost: 6, leftoverServings: 0 },
-      { name: 'Booster snack', aisle: 'Pantry', uses: 0, amortizedCost: 2, added: true, packLabel: 'added', packs: 0, purchaseCost: 2, leftoverServings: 0 },
-    ];
-    const prices = new Map([['Rice', 2.5]]);
-    const result = applyLivePrices(lines, prices);
-    expect(result[0].purchaseCost).toBe(5); // 2.5 * 2 packs
-    expect(result[1].purchaseCost).toBe(2); // added items are never overridden
-  });
-
-  it('leaves a line untouched when no live price was found for it', () => {
-    const lines: PurchaseLine[] = [
-      { name: 'Oats', aisle: 'Grains & staples', uses: 1, amortizedCost: 1, added: false, packLabel: '1 lb', packs: 1, purchaseCost: 3, leftoverServings: 0 },
-    ];
-    expect(applyLivePrices(lines, new Map())[0].purchaseCost).toBe(3);
   });
 });

@@ -10,9 +10,6 @@ function apiDevMiddleware(): Plugin {
   const routes: Array<[string, string]> = [
     ['/api/capabilities', '/server/handlers/capabilities.ts'],
     ['/api/generate-plan', '/server/handlers/generatePlan.ts'],
-    ['/api/kroger/location', '/server/handlers/krogerLocation.ts'],
-    ['/api/kroger/prices', '/server/handlers/krogerPrices.ts'],
-    ['/api/kroger/barcode', '/server/handlers/krogerBarcode.ts'],
   ]
   return {
     name: 'api-dev-middleware',

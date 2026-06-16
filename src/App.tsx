@@ -6,7 +6,6 @@ import { Setup } from './ui/screens/Setup';
 import { Plan } from './ui/screens/Plan';
 import { ShoppingList } from './ui/screens/ShoppingList';
 import { MealSheet } from './ui/screens/MealSheet';
-import { BarcodeScanner } from './ui/components/BarcodeScanner';
 
 function Editorial() {
   return (
@@ -56,12 +55,7 @@ export default function App() {
       <div className="min-h-screen flex flex-wrap gap-14 items-center justify-center px-9 py-12 max-[760px]:block max-[760px]:p-0">
         <Editorial />
         <PhoneFrame
-          overlay={
-            <>
-              {selected && <MealSheet onClose={closeMeal} announce={announce} />}
-              <BarcodeScanner />
-            </>
-          }
+          overlay={selected && <MealSheet onClose={closeMeal} announce={announce} />}
         >
 
           {screen === 'welcome' && <Welcome />}
