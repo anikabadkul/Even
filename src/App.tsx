@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useSession } from './state/session';
+import { Welcome } from './ui/screens/Welcome';
 import { Setup } from './ui/screens/Setup';
 import { Plan } from './ui/screens/Plan';
 import { ShoppingList } from './ui/screens/ShoppingList';
@@ -21,7 +22,8 @@ export default function App() {
   return (
     <>
       <h1 className="sr-only">Even — a free weekly meal planner built around your grocery budget</h1>
-      {(screen === 'welcome' || screen === 'setup') && <Setup />}
+      {screen === 'welcome' && <Welcome />}
+      {screen === 'setup' && <Setup />}
       {screen === 'plan' && <Plan announce={announce} />}
       {screen === 'list' && <ShoppingList announce={announce} />}
       {selected && <MealSheet onClose={closeMeal} announce={announce} />}

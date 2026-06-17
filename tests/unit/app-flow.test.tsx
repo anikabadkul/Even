@@ -21,15 +21,20 @@ beforeEach(() => {
 });
 
 describe('end-to-end UI flow', () => {
-  it('walks welcome/setup -> plan -> shopping list', () => {
+  it('walks welcome -> setup -> plan -> shopping list', () => {
     render(<App />);
-    // Welcome and Setup are now merged — the landing page shows "Set up your week"
+    // Welcome screen: landing page CTA
+    fireEvent.click(screen.getByRole('button', { name: /plan my week/i }));
+
+    // Setup screen: "set up your week" heading (sr-only h2)
     expect(screen.getByText(/set up your week/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /generate my week/i }));
 
-    fireEvent.click(screen.getByRole('button', { name: /build my week/i }));
-    expect(screen.getByText(/the best week for/i)).toBeInTheDocument();
-
+    // Plan screen
+    expect(screen.getByRole('button', { name: /get my shopping list/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /get my shopping list/i }));
+
+    // Shopping list screen
     expect(screen.getByText(/everything for the week/i)).toBeInTheDocument();
   });
 

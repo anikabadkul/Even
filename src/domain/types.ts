@@ -19,6 +19,8 @@ export interface Meal {
   diets: Diet[];
   ingredients: Ingredient[];
   recipe: string[];
+  photo?: string;
+  blurb?: string;
 }
 
 export interface Household {
