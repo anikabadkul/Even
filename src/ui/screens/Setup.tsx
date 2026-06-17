@@ -7,13 +7,21 @@ import type { DietLabel } from '../../domain/types';
 
 const DIETS: DietLabel[] = ['Vegan', 'Vegetarian', 'Omnivore', 'Halal', 'Gluten-free'];
 
-const chip = (active: boolean): React.CSSProperties => ({
-  flex: 1, padding: '11px 0', borderRadius: 10,
-  background: active ? '#ddd5be' : 'rgba(255,255,255,0.06)',
-  color: active ? '#0a0f0b' : 'rgba(221,213,190,0.7)',
-  border: `${active ? 2 : 1}px solid ${active ? '#ddd5be' : 'rgba(255,255,255,0.14)'}`,
-  fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'all 0.15s',
-});
+/* ─── Design tokens ─── */
+const C = {
+  bg:           '#0b1209',
+  bgGlow:       'rgba(52,112,68,0.42)',
+  text:         '#e8dfc8',
+  textMuted:    '#5a8a6a',
+  textFaint:    '#2e5038',
+  border:       'rgba(255,255,255,0.1)',
+  chipBg:       'rgba(255,255,255,0.07)',
+  chipBorder:   'rgba(255,255,255,0.18)',
+  chipText:     'rgba(232,223,200,0.82)',
+  activeGreen:  '#2d6b47',
+  activeBorder: '#3d8a5c',
+  ctaGrad:      'linear-gradient(150deg, #357050 0%, #1a3d26 100%)',
+};
 
 export function Setup() {
   const {
@@ -22,221 +30,226 @@ export function Setup() {
     rebuildIfDietChanged, generateWithAI,
   } = useSession();
   const headRef = useRef<HTMLHeadingElement>(null);
-
   useEffect(() => { headRef.current?.focus({ preventScroll: true }); }, []);
 
-  const size = Math.max(1, adults + kids);
+  const size  = Math.max(1, adults + kids);
   const floor = floorFor(size);
-  const hh = householdLabel({ adults, kids });
+  const hh    = householdLabel({ adults, kids });
+
+  const numBtn = (val: number, active: boolean, fn: () => void, label?: string) => (
+    <button
+      key={val}
+      aria-pressed={active}
+      onClick={fn}
+      style={{
+        width: 52, height: 52, borderRadius: 14, flexShrink: 0,
+        background: active ? C.activeGreen : C.chipBg,
+        color:      active ? '#fff'        : C.chipText,
+        border:     `1.5px solid ${active ? C.activeBorder : C.chipBorder}`,
+        fontSize: 15, fontWeight: 700, cursor: 'pointer',
+        transition: 'all 0.13s',
+        boxShadow: active ? '0 0 18px rgba(45,107,71,0.45)' : 'none',
+      }}
+    >{label ?? val}</button>
+  );
 
   return (
     <div
       className="animate-[fade-in_.4s_ease_both]"
       style={{
         minHeight: '100vh',
-        background: '#0a0f0b',
-        backgroundImage: [
-          'radial-gradient(ellipse 90% 55% at 50% -10%, rgba(46,102,68,0.38) 0%, transparent 68%)',
-          'radial-gradient(ellipse 60% 35% at 50% 105%, rgba(20,46,26,0.25) 0%, transparent 60%)',
-        ].join(', '),
+        background: C.bg,
+        backgroundImage: `radial-gradient(ellipse 110% 60% at 50% -8%, ${C.bgGlow} 0%, transparent 65%)`,
       }}
     >
       <h2 className="sr-only">Set up your week</h2>
 
-      {/* Grain overlay */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          opacity: 0.04,
-        }}
-      />
+      {/* Grain */}
+      <div aria-hidden="true" style={{
+        position:'fixed', inset:0, pointerEvents:'none', zIndex:0, opacity:0.045,
+        backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+      }} />
 
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: 520, margin: '0 auto', padding: '0 24px' }}>
+      {/* ── Page shell ── */}
+      <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', alignItems:'center', padding:'0 24px' }}>
 
         {/* ── Hero ── */}
-        <div style={{ textAlign: 'center', paddingTop: 'clamp(44px, 7vw, 80px)' }}>
-          <span className="font-mono" style={{ fontSize: 10, letterSpacing: '0.38em', color: '#3d6647', textTransform: 'uppercase' }}>
+        <div style={{ textAlign:'center', width:'100%', paddingTop:'clamp(40px,7vw,72px)' }}>
+          <p className="font-mono" style={{ fontSize:10, letterSpacing:'0.4em', color:C.textFaint, textTransform:'uppercase', marginBottom:12 }}>
             Free meal planner · 2026
-          </span>
-
+          </p>
           <h1
             ref={headRef}
             tabIndex={-1}
             className="font-serif font-bold"
             style={{
-              fontSize: 'clamp(80px, 19vw, 196px)',
-              lineHeight: 0.88, letterSpacing: '-0.04em',
-              color: '#ddd5be', marginTop: 10, marginBottom: 16,
-              outline: 'none',
+              fontSize:'clamp(96px,22vw,220px)',
+              lineHeight:0.86, letterSpacing:'-0.045em',
+              color:C.text, outline:'none', margin:0,
             }}
           >
             Even
           </h1>
-
-          <p className="font-serif italic" style={{ fontSize: 'clamp(16px, 2.2vw, 21px)', color: '#4a7a58', marginBottom: 'clamp(36px, 6vw, 60px)' }}>
+          <p className="font-serif italic" style={{ fontSize:'clamp(17px,2.4vw,22px)', color:C.textMuted, marginTop:20, marginBottom:'clamp(44px,7vw,68px)' }}>
             Eat well on what you actually have.
           </p>
         </div>
 
-        {/* ── Form panel ── */}
-        <div
-          style={{
-            background: 'rgba(221,213,190,0.03)',
-            border: '1px solid rgba(221,213,190,0.09)',
-            borderRadius: 22,
-            padding: '32px 32px 28px',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-          } as React.CSSProperties}
-        >
+        {/* ── Form ── */}
+        <div style={{ width:'100%', maxWidth:480 }}>
 
           {/* Budget */}
-          <div style={{ paddingBottom: 28, marginBottom: 28, borderBottom: '1px solid rgba(221,213,190,0.09)' }}>
-            <span className="font-mono" style={{ display: 'block', fontSize: 10, letterSpacing: '0.3em', color: '#5d9470', textTransform: 'uppercase', marginBottom: 16 }}>
-              Weekly grocery budget
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <section style={{ marginBottom:40 }}>
+            <p className="font-mono" style={{ fontSize:11, letterSpacing:'0.28em', color:C.textMuted, textTransform:'uppercase', marginBottom:20 }}>
+              Budget / week
+            </p>
+
+            {/* Big number row */}
+            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
               <button
                 aria-label="Decrease budget"
                 onClick={() => setBudget(Math.max(10, budget - 1))}
                 style={{
-                  width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-                  background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.16)',
-                  color: 'rgba(221,213,190,0.55)', fontSize: 20, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s',
+                  width:44, height:44, borderRadius:12, flexShrink:0,
+                  background:C.chipBg, border:`1.5px solid ${C.chipBorder}`,
+                  color:C.chipText, fontSize:22, cursor:'pointer',
+                  display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.13s',
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.13)'; e.currentTarget.style.color = '#ddd5be'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = 'rgba(221,213,190,0.55)'; }}
+                onMouseOver={e=>{e.currentTarget.style.background='rgba(255,255,255,0.13)';e.currentTarget.style.color=C.text;}}
+                onMouseOut={e=>{e.currentTarget.style.background=C.chipBg;e.currentTarget.style.color=C.chipText;}}
               >−</button>
 
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: 3 }}>
-                  <span className="font-serif" style={{ fontSize: 24, color: '#4a7a58', marginTop: 12, lineHeight: 1 }}>$</span>
-                  <span className="font-serif font-bold" style={{ fontSize: 'clamp(60px, 11vw, 92px)', lineHeight: 1, letterSpacing: '-0.03em', color: '#e8dfc8' }}>
+              <div style={{ flex:1, textAlign:'center', lineHeight:1 }}>
+                <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'center', gap:6 }}>
+                  <span className="font-serif" style={{ fontSize:28, color:C.textMuted, marginTop:16, lineHeight:1 }}>$</span>
+                  <span className="font-serif font-bold" style={{ fontSize:'clamp(72px,13vw,112px)', letterSpacing:'-0.03em', color:C.text, lineHeight:1 }}>
                     {Math.round(budget)}
                   </span>
                 </div>
-                <p className="font-mono" style={{ fontSize: 11.5, color: '#4a7a58', marginTop: 3 }}>{f(budget / 7)} / day</p>
+                <p className="font-mono" style={{ fontSize:12, color:C.textMuted, marginTop:6 }}>{f(budget/7)} per day</p>
               </div>
 
               <button
                 aria-label="Increase budget"
                 onClick={() => setBudget(Math.min(400, budget + 1))}
                 style={{
-                  width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-                  background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.16)',
-                  color: 'rgba(221,213,190,0.55)', fontSize: 20, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s',
+                  width:44, height:44, borderRadius:12, flexShrink:0,
+                  background:C.chipBg, border:`1.5px solid ${C.chipBorder}`,
+                  color:C.chipText, fontSize:22, cursor:'pointer',
+                  display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.13s',
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.13)'; e.currentTarget.style.color = '#ddd5be'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = 'rgba(221,213,190,0.55)'; }}
+                onMouseOver={e=>{e.currentTarget.style.background='rgba(255,255,255,0.13)';e.currentTarget.style.color=C.text;}}
+                onMouseOut={e=>{e.currentTarget.style.background=C.chipBg;e.currentTarget.style.color=C.chipText;}}
               >+</button>
             </div>
+
             <input
               type="range" min={10} max={300} step={1}
-              value={Math.min(300, budget)}
+              value={Math.min(300,budget)}
               aria-label="Weekly grocery budget slider"
-              onChange={(e) => setBudget(parseFloat(e.target.value))}
-              style={{ width: '100%', marginTop: 18, accentColor: '#3a7a50' } as React.CSSProperties}
+              onChange={e => setBudget(parseFloat(e.target.value))}
+              style={{ width:'100%', marginTop:22, accentColor:'#3d8a5c' } as React.CSSProperties}
             />
-            <p style={{ fontSize: 12, color: '#3d6647', marginTop: 8 }}>SNAP averages about $43/week per person.</p>
-          </div>
+            <p style={{ fontSize:12, color:C.textFaint, marginTop:9 }}>SNAP averages about $43/week per person.</p>
+          </section>
+
+          {/* Divider */}
+          <div style={{ height:1, background:'rgba(255,255,255,0.07)', marginBottom:36 }} />
 
           {/* Household */}
-          <div style={{ paddingBottom: 28, marginBottom: 28, borderBottom: '1px solid rgba(221,213,190,0.09)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+          <section style={{ marginBottom:36 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:24 }}>
               <div>
-                <span className="font-mono" style={{ display: 'block', fontSize: 10, letterSpacing: '0.3em', color: '#5d9470', textTransform: 'uppercase', marginBottom: 12 }}>Adults</span>
-                <div role="group" aria-label="Number of adults" style={{ display: 'flex', gap: 8 }}>
-                  {[1, 2, 3, 4].map((x) => (
-                    <button key={x} aria-pressed={adults === x} onClick={() => setAdults(x)} style={chip(adults === x)}>{x}</button>
-                  ))}
+                <p className="font-mono" style={{ fontSize:11, letterSpacing:'0.28em', color:C.textMuted, textTransform:'uppercase', marginBottom:14 }}>Adults</p>
+                <div role="group" aria-label="Number of adults" style={{ display:'flex', gap:8 }}>
+                  {[1,2,3,4].map(x => numBtn(x, adults===x, () => setAdults(x)))}
                 </div>
               </div>
               <div>
-                <span className="font-mono" style={{ display: 'block', fontSize: 10, letterSpacing: '0.3em', color: '#5d9470', textTransform: 'uppercase', marginBottom: 12 }}>Children</span>
-                <div role="group" aria-label="Number of children" style={{ display: 'flex', gap: 8 }}>
-                  {[0, 1, 2, 3].map((x) => (
-                    <button key={x} aria-pressed={kids === x} onClick={() => setKids(x)} style={chip(kids === x)}>{x}</button>
-                  ))}
+                <p className="font-mono" style={{ fontSize:11, letterSpacing:'0.28em', color:C.textMuted, textTransform:'uppercase', marginBottom:14 }}>Children</p>
+                <div role="group" aria-label="Number of children" style={{ display:'flex', gap:8 }}>
+                  {[0,1,2,3].map(x => numBtn(x, kids===x, () => setKids(x)))}
                 </div>
               </div>
             </div>
-            <p style={{ fontSize: 12, color: '#3d6647', marginTop: 12 }}>
+            <p style={{ fontSize:12, color:C.textFaint, marginTop:14 }}>
               Complete week for {hh}: ~{f(floor)} (USDA minimum).
             </p>
-          </div>
+          </section>
+
+          {/* Divider */}
+          <div style={{ height:1, background:'rgba(255,255,255,0.07)', marginBottom:36 }} />
 
           {/* Diet */}
-          <div>
-            <span className="font-mono" style={{ display: 'block', fontSize: 10, letterSpacing: '0.3em', color: '#5d9470', textTransform: 'uppercase', marginBottom: 12 }}>How do you eat?</span>
-            <div role="group" aria-label="Dietary preference" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {DIETS.map((d) => (
-                <button
-                  key={d}
-                  aria-pressed={diet === d}
-                  onClick={() => setDiet(d)}
-                  style={{
-                    padding: '8px 18px', borderRadius: 999, fontSize: 13.5, fontWeight: 600,
-                    background: diet === d ? '#ddd5be' : 'rgba(255,255,255,0.06)',
-                    color: diet === d ? '#0a0f0b' : 'rgba(221,213,190,0.7)',
-                    border: `${diet === d ? 2 : 1}px solid ${diet === d ? '#ddd5be' : 'rgba(255,255,255,0.14)'}`,
-                    cursor: 'pointer', transition: 'all 0.15s',
-                  }}
-                >{d}</button>
-              ))}
+          <section style={{ marginBottom:44 }}>
+            <p className="font-mono" style={{ fontSize:11, letterSpacing:'0.28em', color:C.textMuted, textTransform:'uppercase', marginBottom:14 }}>How do you eat?</p>
+            <div role="group" aria-label="Dietary preference" style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+              {DIETS.map(d => {
+                const active = diet === d;
+                return (
+                  <button
+                    key={d}
+                    aria-pressed={active}
+                    onClick={() => setDiet(d)}
+                    style={{
+                      padding:'9px 20px', borderRadius:999, fontSize:13.5, fontWeight:600,
+                      background: active ? C.activeGreen  : C.chipBg,
+                      color:      active ? '#fff'          : C.chipText,
+                      border:     `1.5px solid ${active ? C.activeBorder : C.chipBorder}`,
+                      cursor:'pointer', transition:'all 0.13s',
+                      boxShadow: active ? '0 0 16px rgba(45,107,71,0.4)' : 'none',
+                    }}
+                  >{d}</button>
+                );
+              })}
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* ── CTAs ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14, paddingBottom: 'clamp(48px, 7vw, 72px)' }}>
-          {capabilities.ai && (
+          {/* CTAs */}
+          <div style={{ display:'flex', flexDirection:'column', gap:10, paddingBottom:'clamp(48px,8vw,80px)' }}>
+            {capabilities.ai && (
+              <button
+                disabled={aiStatus==='loading'}
+                onClick={async () => {
+                  await generateWithAI();
+                  if (useSession.getState().aiStatus==='error') rebuildIfDietChanged();
+                  setScreen('plan');
+                }}
+                style={{
+                  width:'100%', padding:'14px 0', borderRadius:14,
+                  background:'rgba(255,255,255,0.05)', border:`1.5px solid ${C.chipBorder}`,
+                  fontSize:14, fontWeight:600, color:C.chipText, cursor:'pointer', transition:'all 0.13s',
+                }}
+                onMouseOver={e=>{e.currentTarget.style.background='rgba(255,255,255,0.1)';e.currentTarget.style.color=C.text;}}
+                onMouseOut={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.color=C.chipText;}}
+              >
+                {aiStatus==='loading' ? 'Generating your week…' : '✦ Generate with AI'}
+              </button>
+            )}
             <button
-              disabled={aiStatus === 'loading'}
-              onClick={async () => {
-                await generateWithAI();
-                if (useSession.getState().aiStatus === 'error') rebuildIfDietChanged();
-                setScreen('plan');
-              }}
+              onClick={() => { rebuildIfDietChanged(); setScreen('plan'); }}
               style={{
-                width: '100%', padding: '13px 0', borderRadius: 12,
-                border: '1px solid rgba(255,255,255,0.13)', background: 'rgba(255,255,255,0.05)',
-                fontSize: 14, fontWeight: 600, color: 'rgba(221,213,190,0.6)', cursor: 'pointer',
-                transition: 'all 0.15s',
+                width:'100%', padding:'18px 0', borderRadius:16,
+                border:'none', fontSize:17, fontWeight:700, color:'#fff',
+                background: C.ctaGrad,
+                boxShadow:'0 0 56px rgba(45,112,70,0.35), 0 10px 32px rgba(0,0,0,0.55)',
+                cursor:'pointer', transition:'transform 0.14s, box-shadow 0.14s',
+                letterSpacing:'-0.01em',
               }}
-              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#ddd5be'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'rgba(221,213,190,0.6)'; }}
+              onMouseOver={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 0 80px rgba(45,112,70,0.48), 0 14px 40px rgba(0,0,0,0.55)';}}
+              onMouseOut={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 0 56px rgba(45,112,70,0.35), 0 10px 32px rgba(0,0,0,0.55)';}}
             >
-              {aiStatus === 'loading' ? 'Generating your week…' : '✦ Generate with AI'}
+              Build my week →
             </button>
-          )}
-          <button
-            onClick={() => { rebuildIfDietChanged(); setScreen('plan'); }}
-            style={{
-              width: '100%', padding: '17px 0', borderRadius: 14,
-              border: 'none', fontSize: 16, fontWeight: 700, color: '#fff',
-              background: 'linear-gradient(160deg, #2e6644 0%, #152b1c 100%)',
-              boxShadow: '0 0 52px rgba(46,102,68,0.32), 0 8px 28px rgba(0,0,0,0.5)',
-              cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s',
-            }}
-            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 0 72px rgba(46,102,68,0.42), 0 12px 36px rgba(0,0,0,0.5)'; }}
-            onMouseOut={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 0 52px rgba(46,102,68,0.32), 0 8px 28px rgba(0,0,0,0.5)'; }}
-          >
-            Build my week →
-          </button>
-          {aiStatus === 'error' && (
-            <p style={{ fontSize: 12, color: '#3d6647', textAlign: 'center', margin: 0 }}>
-              AI didn't respond — built the usual way.
-            </p>
-          )}
-        </div>
+            {aiStatus==='error' && (
+              <p style={{ fontSize:12, color:C.textFaint, textAlign:'center', margin:0 }}>AI didn't respond — built the usual way.</p>
+            )}
+          </div>
 
-        <p className="font-mono text-center" style={{ fontSize: 10, letterSpacing: '0.22em', color: '#1e3524', textTransform: 'uppercase', paddingBottom: 40 }}>
-          No account &nbsp;·&nbsp; No cost &nbsp;·&nbsp; USDA-based &nbsp;·&nbsp; Works offline
-        </p>
+          <p className="font-mono text-center" style={{ fontSize:10, letterSpacing:'0.22em', color:C.textFaint, textTransform:'uppercase', paddingBottom:40 }}>
+            No account &nbsp;·&nbsp; No cost &nbsp;·&nbsp; USDA-based &nbsp;·&nbsp; Works offline
+          </p>
+        </div>
       </div>
     </div>
   );
