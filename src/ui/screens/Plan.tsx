@@ -5,7 +5,6 @@ import { boosterItems, computeBudget, summarizeWeek } from '../../domain/budget'
 import { householdLabel } from '../../domain/nutrition';
 import { effFor } from '../../domain/money';
 import { f } from '../format';
-import { Card, Label } from '../components/Card';
 import { Meter } from '../components/Meter';
 import { SecondaryButton } from '../components/Button';
 import { Toast } from '../components/Toast';
@@ -13,6 +12,17 @@ import { weekLabels } from '../../domain/calendar';
 import { CAL_ADULT, CAL_KID } from '../../data/references';
 
 const SLOT_LABEL: Record<string, string> = { B: 'Breakfast', L: 'Lunch', D: 'Dinner' };
+
+/* ── Palette (warm cream / food-forward) ── */
+const bg       = '#f2e8d5';
+const surface  = '#fff';
+const ink      = '#1a2416';
+const inkSoft  = '#6b7c60';
+const inkFaint = '#a89f8c';
+const lime     = '#b8d62a';
+const limeText = '#3d4a10';
+const accent   = '#2c5e3f';
+const warmCard = '#fdf5e8';
 
 interface PlanProps {
   announce: (msg: string) => void;
@@ -55,118 +65,116 @@ export function Plan({ announce }: PlanProps) {
   }
 
   return (
-    <div className="min-h-screen animate-[fade-in_.26s_ease_both]" style={{ background: '#f8f6f1' }}>
+    <div className="min-h-screen animate-[fade-in_.26s_ease_both]" style={{ background: bg }}>
 
       {/* ── Nav ── */}
       <nav
-        className="sticky top-0 z-10 px-6 lg:px-10 py-4 flex items-center gap-4"
+        className="sticky top-0 z-10 px-6 lg:px-10"
         style={{
-          background: 'rgba(248,246,241,0.85)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(0,0,0,0.06)',
-        }}
+          background: `rgba(242,232,213,0.88)`,
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          borderBottom: '1px solid rgba(0,0,0,0.07)',
+        } as React.CSSProperties}
       >
-        <span className="font-serif text-[20px] font-bold tracking-tight flex-1" style={{ color: '#0d1810' }}>Even</span>
-        <span className="text-[12px] hidden md:block" style={{ color: '#888' }}>{hhLabel} · {diet}</span>
-        <button
-          className="font-mono text-[12px] font-bold rounded-full px-4 py-2 border transition-colors"
-          style={{ color: '#2c5e3f', borderColor: '#b5d4bf', background: '#edf5ef' }}
-          onClick={doShuffle}
-          aria-label="Shuffle the week for different meals"
-        >
-          ↻ Shuffle
-        </button>
-        <button
-          className="text-[13px] font-semibold transition-colors hidden sm:block"
-          style={{ color: '#888' }}
-          onMouseOver={(e) => (e.currentTarget.style.color = '#111')}
-          onMouseOut={(e) => (e.currentTarget.style.color = '#888')}
-          onClick={() => setScreen('setup')}
-        >
-          Edit
-        </button>
-        <button
-          className="text-[13px] font-bold text-white rounded-full px-5 py-2 transition-all"
-          style={{
-            background: 'linear-gradient(135deg, #2c5e3f 0%, #1d3e29 100%)',
-            boxShadow: '0 2px 8px rgba(13,24,16,0.2)',
-          }}
-          onClick={() => setScreen('list')}
-        >
-          Shopping list →
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, height: 58 }}>
+          <span className="font-serif italic font-bold" style={{ fontSize: 20, color: ink, letterSpacing: '-0.02em', flex: 1 }}>Even</span>
+          <span className="hidden md:block" style={{ fontSize: 12, color: inkFaint }}>{hhLabel} · {diet}</span>
+          <button
+            style={{
+              fontSize: 12, fontWeight: 700, color: inkSoft, background: 'rgba(0,0,0,0.06)',
+              border: '1px solid rgba(0,0,0,0.1)', borderRadius: 999, padding: '6px 14px', cursor: 'pointer', transition: 'all 0.13s',
+            }}
+            onClick={doShuffle}
+            aria-label="Shuffle the week for different meals"
+            onMouseOver={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; e.currentTarget.style.color = ink; }}
+            onMouseOut={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; e.currentTarget.style.color = inkSoft; }}
+          >↻ Shuffle</button>
+          <button
+            className="hidden sm:block"
+            style={{ fontSize: 13, fontWeight: 600, color: inkFaint, cursor: 'pointer', transition: 'all 0.13s', background: 'none', border: 'none', padding: '6px 4px' }}
+            onMouseOver={e => (e.currentTarget.style.color = ink)}
+            onMouseOut={e => (e.currentTarget.style.color = inkFaint)}
+            onClick={() => setScreen('setup')}
+          >Edit</button>
+          <button
+            style={{
+              fontSize: 13, fontWeight: 700, color: limeText,
+              background: lime, border: 'none', borderRadius: 999, padding: '8px 18px', cursor: 'pointer',
+              boxShadow: '0 2px 10px rgba(184,214,42,0.3)', transition: 'all 0.13s',
+            }}
+            onClick={() => setScreen('list')}
+            onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(184,214,42,0.4)'; }}
+            onMouseOut={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 10px rgba(184,214,42,0.3)'; }}
+          >Shopping list →</button>
+        </div>
       </nav>
 
-      {/* ── Main content ── */}
       <div className="max-w-[1200px] mx-auto px-5 lg:px-10 pt-10 pb-20">
 
-        {/* Page heading */}
+        {/* ── Headline ── */}
         <h2
           ref={headRef}
           tabIndex={-1}
           className="font-serif font-bold outline-none"
-          style={{ fontSize: 'clamp(34px, 5vw, 58px)', lineHeight: 1.0, letterSpacing: '-0.025em', color: '#111' }}
+          style={{ fontSize: 'clamp(32px, 5vw, 56px)', lineHeight: 1.05, letterSpacing: '-0.025em', color: ink, marginBottom: 8 }}
         >
           The best week for {f(budget)}.
         </h2>
-        <p className="text-[15px] mt-2 mb-9" style={{ color: '#888' }}>
+        <p style={{ fontSize: 15, color: inkSoft, marginBottom: 36 }}>
           {diet} · click any meal to view its recipe or swap it
         </p>
 
-        {/* Budget card */}
+        {/* ── Budget card ── */}
         <div
-          className="rounded-2xl p-6 lg:p-8 mb-10"
           style={{
-            background: '#fff',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)',
-            border: '1px solid rgba(0,0,0,0.06)',
+            background: surface, borderRadius: 20, padding: '28px 32px', marginBottom: 36,
+            border: '1px solid rgba(0,0,0,0.07)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05), 0 12px 40px rgba(0,0,0,0.04)',
           }}
         >
           <div className="lg:grid lg:grid-cols-2 lg:gap-10">
             <div>
-              <label
-                className="block font-mono text-[10px] tracking-[0.28em] uppercase mb-3"
-                style={{ color: '#aaa' }}
-                htmlFor="budR"
-              >
+              <p className="font-mono" style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: inkFaint, marginBottom: 12 }}>
                 Weekly budget
-              </label>
-              <div className="flex items-baseline gap-2 mb-0.5">
-                <span className="font-serif text-[24px]" style={{ color: '#ccc' }}>$</span>
+              </p>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
+                <span className="font-serif" style={{ fontSize: 22, color: '#ccc' }}>$</span>
                 <input
                   type="number"
                   inputMode="decimal"
                   min={10} max={400} step={0.5}
                   value={budget}
                   aria-label="Weekly budget in dollars"
-                  onChange={(e) => setBudget(parseFloat(e.target.value))}
-                  className="font-serif text-[36px] w-28 border-none bg-transparent p-0 focus:outline-none"
-                  style={{ color: '#111', borderBottom: '1.5px solid #e5e5e5' }}
+                  onChange={e => setBudget(parseFloat(e.target.value))}
+                  style={{
+                    fontFamily: 'inherit', fontSize: 38, fontWeight: 700, width: 110,
+                    border: 'none', background: 'transparent', padding: 0,
+                    borderBottom: '2px solid #e5ddd0', color: ink, outline: 'none',
+                  }}
+                  className="font-serif"
                 />
-                <span className="font-mono text-[12px] ml-auto" style={{ color: '#aaa' }}>{f(budget / 7)} / day</span>
+                <span className="font-mono" style={{ fontSize: 12, color: inkFaint, marginLeft: 'auto' }}>{f(budget / 7)} / day</span>
               </div>
               <input
-                id="budR"
-                type="range"
-                min={10} max={300} step={0.5}
+                type="range" min={10} max={300} step={0.5}
                 value={Math.min(300, budget)}
                 aria-label="Adjust weekly budget"
-                onChange={(e) => setBudget(parseFloat(e.target.value))}
-                onMouseUp={() =>
-                  announce(v.showGap ? `${f(budget)}, ${f(v.gap)} short of a complete week` : `${f(budget)}, covers a complete week`)
-                }
+                onChange={e => setBudget(parseFloat(e.target.value))}
+                onMouseUp={() => announce(v.showGap ? `${f(budget)}, ${f(v.gap)} short of a complete week` : `${f(budget)}, covers a complete week`)}
+                style={{ width: '100%', marginTop: 16, accentColor: accent } as React.CSSProperties}
               />
             </div>
-            <div className="mt-5 lg:mt-0">
+            <div className="mt-6 lg:mt-0">
               <GapBlock v={v} budget={budget} hhLabel={hhLabel} />
             </div>
           </div>
         </div>
 
-        {/* Section header */}
-        <div className="flex items-baseline justify-between mb-4">
-          <h3 className="font-serif text-[22px] font-medium" style={{ color: '#111' }}>Your 7 days</h3>
-          <span className="font-mono text-[11.5px]" style={{ color: '#aaa' }}>21 meals · click any to swap</span>
+        {/* ── 7-day grid header ── */}
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h3 className="font-serif" style={{ fontSize: 22, fontWeight: 600, color: ink }}>Your 7 days</h3>
+          <span className="font-mono" style={{ fontSize: 11.5, color: inkFaint }}>21 meals · click any to swap</span>
         </div>
 
         {/* ── Bento grid ── */}
@@ -174,24 +182,23 @@ export function Plan({ announce }: PlanProps) {
           <div
             className="overflow-hidden min-w-[680px]"
             style={{
-              display: 'grid',
-              gap: '1px',
+              display: 'grid', gap: '1px',
               gridTemplateColumns: '52px repeat(7, minmax(0, 1fr))',
-              background: 'rgba(0,0,0,0.08)',
-              borderRadius: '18px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)',
+              background: 'rgba(0,0,0,0.07)',
+              borderRadius: 18,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.05)',
             }}
           >
-            {/* Day header row */}
-            <div style={{ background: '#f0ece5' }} aria-hidden="true" />
+            {/* Day headers */}
+            <div style={{ background: '#e8d9c0' }} aria-hidden="true" />
             {days.map((d, i) => {
               const dayCost = SLOTS.reduce((s, slot) => s + mealAt(picks, i, slot, dietKey).cost * n * eff, 0);
               return (
-                <div key={i} className="px-2 py-3 text-center" style={{ background: '#f0ece5' }}>
-                  <div className="font-mono text-[10px] tracking-wider uppercase font-bold" style={{ color: '#999' }}>
+                <div key={i} style={{ background: '#e8d9c0', padding: '10px 8px', textAlign: 'center' }}>
+                  <div className="font-mono" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, color: inkSoft }}>
                     {d.dow}
                   </div>
-                  <div className="font-mono text-[11.5px] font-bold mt-1" style={{ color: '#2c5e3f' }}>
+                  <div className="font-mono" style={{ fontSize: 11.5, fontWeight: 700, marginTop: 3, color: limeText }}>
                     {f(dayCost)}
                   </div>
                 </div>
@@ -199,13 +206,13 @@ export function Plan({ announce }: PlanProps) {
             })}
 
             {/* Slot rows */}
-            {SLOTS.map((slot) => (
+            {SLOTS.map(slot => (
               <Fragment key={slot}>
-                <div className="flex items-center justify-center py-4 px-1" style={{ background: '#f0ece5' }}>
+                <div style={{ background: '#e8d9c0', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 4px' }}>
                   <span
                     aria-hidden="true"
-                    className="font-mono text-[8px] tracking-[0.18em] uppercase"
-                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', color: '#bbb' }}
+                    className="font-mono"
+                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#b0a090' }}
                   >
                     {SLOT_LABEL[slot]}
                   </span>
@@ -217,18 +224,18 @@ export function Plan({ announce }: PlanProps) {
                       key={i}
                       onClick={() => openMeal(i, slot)}
                       aria-label={`${SLOT_LABEL[slot]}: ${d.dow} ${m.name}, ${f(m.cost * n * eff)}. Click to view or swap`}
-                      className="text-left px-3 py-3 min-h-[96px] flex flex-col justify-between group transition-colors"
-                      style={{ background: '#fff' }}
-                      onMouseOver={(e) => (e.currentTarget.style.background = '#f5faf6')}
-                      onMouseOut={(e) => (e.currentTarget.style.background = '#fff')}
+                      style={{
+                        textAlign: 'left', padding: '12px 10px', minHeight: 96,
+                        display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                        background: surface, cursor: 'pointer', transition: 'background 0.12s', border: 'none',
+                      }}
+                      onMouseOver={e => (e.currentTarget.style.background = warmCard)}
+                      onMouseOut={e => (e.currentTarget.style.background = surface)}
                     >
-                      <span
-                        className="text-[12.5px] font-medium leading-snug line-clamp-3 transition-colors"
-                        style={{ color: '#222' }}
-                      >
+                      <span style={{ fontSize: 12.5, fontWeight: 500, lineHeight: 1.35, color: '#2a2018', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
                         {m.name}
                       </span>
-                      <span className="font-mono text-[11px] font-bold mt-2" style={{ color: '#2c5e3f' }}>
+                      <span className="font-mono" style={{ fontSize: 11, fontWeight: 700, marginTop: 6, color: limeText }}>
                         {f(m.cost * n * eff)}
                       </span>
                     </button>
@@ -241,36 +248,40 @@ export function Plan({ announce }: PlanProps) {
 
         {/* Booster items */}
         {adds.length > 0 && (
-          <Card className="mb-6 bg-accent-soft border-[#bcd2c5]">
-            <Label className="text-accent-ink">Added with your budget</Label>
-            <p className="text-[13px] my-1.5 mb-2.5">Your extra money buys fresh food that fills the gaps:</p>
-            <div className="grid sm:grid-cols-2 gap-1">
-              {adds.map((b) => (
-                <div key={b.name} className="flex justify-between text-sm py-1.5 border-b border-[#d4e0d8]">
+          <div style={{ background: '#edf5ef', border: '1.5px solid #bcd2c5', borderRadius: 16, padding: '18px 20px', marginBottom: 24 }}>
+            <p className="font-mono" style={{ fontSize: 10, letterSpacing: '0.25em', textTransform: 'uppercase', color: accent, marginBottom: 8 }}>Added with your budget</p>
+            <p style={{ fontSize: 13, marginBottom: 12, color: inkSoft }}>Your extra money buys fresh food that fills the gaps:</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 4 }}>
+              {adds.map(b => (
+                <div key={b.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, padding: '7px 0', borderBottom: '1px solid #d4e0d8' }}>
                   <span>{b.name}</span>
-                  <span className="font-mono font-bold text-accent-ink">{f(b.cost)}</span>
+                  <span className="font-mono font-bold" style={{ color: accent }}>{f(b.cost)}</span>
                 </div>
               ))}
             </div>
-          </Card>
+          </div>
         )}
 
         {/* Week total */}
-        <div className="flex justify-between items-baseline pt-3 mb-8" style={{ borderTop: '2px solid #222' }}>
-          <span className="font-serif text-xl" style={{ color: '#111' }}>Week total</span>
-          <span className="font-mono text-[17px] font-bold" style={{ color: '#111' }}>{f(v.total)}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderTop: `2px solid ${ink}`, paddingTop: 12, marginBottom: 32 }}>
+          <span className="font-serif" style={{ fontSize: 20, color: ink }}>Week total</span>
+          <span className="font-mono" style={{ fontSize: 17, fontWeight: 700, color: ink }}>{f(v.total)}</span>
         </div>
 
         <NutritionCard v={v} hhLabel={hhLabel} treat={treat} meterReady={meterReady} budget={budget} />
 
-        <div className="flex flex-col sm:flex-row gap-3 mt-8">
+        {/* CTAs */}
+        <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
           <button
             onClick={() => setScreen('list')}
-            className="flex-1 py-4 rounded-2xl font-bold text-[16px] text-white transition-all"
             style={{
-              background: 'linear-gradient(135deg, #2c5e3f 0%, #1d3e29 100%)',
-              boxShadow: '0 4px 14px rgba(13,24,16,0.25)',
+              flex: 1, minWidth: 200, padding: '17px 0', borderRadius: 16,
+              border: 'none', fontSize: 16, fontWeight: 700,
+              background: lime, color: limeText,
+              boxShadow: '0 4px 20px rgba(184,214,42,0.3)', cursor: 'pointer', transition: 'all 0.15s',
             }}
+            onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(184,214,42,0.4)'; }}
+            onMouseOut={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 20px rgba(184,214,42,0.3)'; }}
           >
             Get my shopping list
           </button>
@@ -304,32 +315,36 @@ function GapBlock({ v, budget, hhLabel }: { v: ReturnType<typeof computeBudget>;
   return (
     <div>
       {v.fits ? (
-        <div className="flex items-start gap-2.5 bg-accent-soft rounded-xl px-[13px] py-[11px]">
-          <span className="w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center text-xs font-extrabold flex-none mt-0.5" aria-hidden="true">✓</span>
-          <span className="text-sm leading-snug text-accent-ink">
+        <div style={{ display: 'flex', gap: 10, background: '#edf5ef', borderRadius: 14, padding: '11px 14px' }}>
+          <span style={{ width: 20, height: 20, borderRadius: '50%', background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0, marginTop: 2 }}>✓</span>
+          <span style={{ fontSize: 14, lineHeight: 1.45, color: '#1a4a2e' }}>
             <strong>Fits your budget.</strong> Spends {f(v.total)} of your {f(v.total + Math.max(0, v.leftover))}
             {v.leftover > 0.5 ? `, ${f(v.leftover)} to spare` : ''}.
           </span>
         </div>
       ) : (
-        <div className="flex items-start gap-2.5 bg-amber-soft rounded-xl px-[13px] py-[11px]">
-          <span className="w-5 h-5 rounded-full bg-amber text-white flex items-center justify-center text-[13px] font-extrabold flex-none mt-0.5" aria-hidden="true">!</span>
-          <span className="text-sm leading-snug text-amber-ink">
+        <div style={{ display: 'flex', gap: 10, background: '#fef3e2', borderRadius: 14, padding: '11px 14px' }}>
+          <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#d97706', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 900, flexShrink: 0, marginTop: 2 }}>!</span>
+          <span style={{ fontSize: 14, lineHeight: 1.45, color: '#78350f' }}>
             <strong>Over your budget.</strong> The cheapest week for {hhLabel} costs {f(v.baseHH)}, {f(v.baseHH - budget)} more than your {f(budget)}.
           </span>
         </div>
       )}
 
-      <div className="mt-4">
+      <div style={{ marginTop: 16 }}>
         <Meter pct={v.meterPct} withGapStripe />
-        <div className="relative h-[18px] mt-[7px]">
-          <span className="absolute left-0 font-mono text-xs text-accent-ink">{f(budget)} you</span>
-          <span className="absolute right-0 font-mono text-xs text-amber-ink">{f(v.floorHH)} full week</span>
+        <div style={{ position: 'relative', height: 18, marginTop: 7 }}>
+          <span className="font-mono" style={{ position: 'absolute', left: 0, fontSize: 11.5, color: accent }}>{f(budget)} you</span>
+          <span className="font-mono" style={{ position: 'absolute', right: 0, fontSize: 11.5, color: '#b45309' }}>{f(v.floorHH)} full week</span>
         </div>
       </div>
 
-      <div className={`rounded-[14px] p-[15px] mt-3.5 border-[1.5px] ${warm ? 'bg-amber-soft border-[#e9d6b6]' : 'bg-accent-soft border-[#bcd2c5]'}`}>
-        <p className={`font-serif text-[16.5px] leading-snug m-0 ${warm ? 'text-[#5e431c]' : 'text-accent-ink'}`}>{line}</p>
+      <div style={{
+        borderRadius: 14, padding: 15, marginTop: 14,
+        background: warm ? '#fef3e2' : '#edf5ef',
+        border: `1.5px solid ${warm ? '#f0d5a0' : '#bcd2c5'}`,
+      }}>
+        <p className="font-serif" style={{ fontSize: 16, lineHeight: 1.5, margin: 0, color: warm ? '#78350f' : '#1a4a2e' }}>{line}</p>
       </div>
     </div>
   );
@@ -338,32 +353,32 @@ function GapBlock({ v, budget, hhLabel }: { v: ReturnType<typeof computeBudget>;
 function NutritionCard({ v, hhLabel, treat, meterReady, budget }: {
   v: ReturnType<typeof computeBudget>; hhLabel: string; treat: string; meterReady: boolean; budget: number;
 }) {
-  const calColor = v.calMet ? 'var(--color-accent-ink)' : 'var(--color-amber-ink)';
-  const protColor = v.protMet ? 'var(--color-accent-ink)' : 'var(--color-amber-ink)';
-  const microColor = v.microMet ? 'var(--color-accent-ink)' : 'var(--color-amber-ink)';
+  const calColor  = v.calMet  ? accent : '#b45309';
+  const protColor = v.protMet ? accent : '#b45309';
+  const microColor= v.microMet? accent : '#b45309';
 
   return (
-    <Card className="mt-4">
-      <Label>Per day, your household · vs the guideline</Label>
-      <p className="text-[12.5px] my-1.5 mb-3.5">
+    <div style={{ background: surface, borderRadius: 20, padding: '24px 28px', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+      <p className="font-mono" style={{ fontSize: 10, letterSpacing: '0.25em', textTransform: 'uppercase', color: inkFaint, marginBottom: 6 }}>Per day, your household · vs the guideline</p>
+      <p style={{ fontSize: 12.5, color: inkSoft, marginBottom: 20 }}>
         For {hhLabel}: about {v.targetKcal.toLocaleString()} cal and {v.targetProtein}g protein a day (adults {CAL_ADULT.toLocaleString()}, kids {CAL_KID.toLocaleString()}).
       </p>
-      <MetricRow label="Calories" value={`≈${v.avgKcal.toLocaleString()} / ${v.targetKcal.toLocaleString()}`} pct={meterReady ? v.calPct : 0} color={calColor} ok={v.calMet} okText="Meets the guideline" shortText={`${Math.round(v.targetKcal - v.avgKcal).toLocaleString()} calories under`} />
-      <MetricRow label="Protein" value={`${v.avgProtein}g / ${v.targetProtein}g`} pct={meterReady ? v.protPct : 0} color={protColor} ok={v.protMet} okText="Meets the guideline" shortText={`${v.targetProtein - v.avgProtein}g short`} />
-      <MetricRow label="Calcium & iron" value={`${Math.round(v.microPct)}%`} pct={meterReady ? v.microPct : 0} color={microColor} ok={v.microMet} okText="Covered" shortText="Still thin" last />
-      <div className="border-t border-dashed border-line pt-[13px] mt-2">
-        <p className="text-[13.5px]">{treat}</p>
+      <MetricRow label="Calories"      value={`≈${v.avgKcal.toLocaleString()} / ${v.targetKcal.toLocaleString()}`} pct={meterReady ? v.calPct  : 0} color={calColor}  ok={v.calMet}  okText="Meets the guideline" shortText={`${Math.round(v.targetKcal - v.avgKcal).toLocaleString()} calories under`} />
+      <MetricRow label="Protein"       value={`${v.avgProtein}g / ${v.targetProtein}g`}                           pct={meterReady ? v.protPct : 0} color={protColor} ok={v.protMet} okText="Meets the guideline" shortText={`${v.targetProtein - v.avgProtein}g short`} />
+      <MetricRow label="Calcium & iron" value={`${Math.round(v.microPct)}%`}                                       pct={meterReady ? v.microPct: 0} color={microColor} ok={v.microMet} okText="Covered"             shortText="Still thin" last />
+      <div style={{ borderTop: '1px dashed #e5ddd0', paddingTop: 14, marginTop: 10 }}>
+        <p style={{ fontSize: 13.5, color: ink }}>{treat}</p>
         {budget < v.floorHH && (
-          <div className="mt-3 bg-paper rounded-xl px-[14px] py-3">
-            <div className="text-[13px] font-extrabold mb-0.5">Short on cash this week?</div>
-            <p className="text-[13px] m-0">Dial 2-1-1 (free, 24/7) or visit findhelp.org for local food pantries and SNAP help.</p>
+          <div style={{ marginTop: 12, background: '#f5ede0', borderRadius: 14, padding: '12px 16px' }}>
+            <p style={{ fontSize: 13, fontWeight: 800, marginBottom: 4 }}>Short on cash this week?</p>
+            <p style={{ fontSize: 13, margin: 0, color: inkSoft }}>Dial 2-1-1 (free, 24/7) or visit findhelp.org for local food pantries and SNAP help.</p>
           </div>
         )}
       </div>
-      <p className="text-[11.5px] mt-3 text-ink-soft">
-        Targets from the USDA Dietary Guidelines (2025-2030). Budget floor from the USDA Thrifty Food Plan (2026).
+      <p style={{ fontSize: 11.5, marginTop: 12, color: inkFaint }}>
+        Targets from the USDA Dietary Guidelines (2025–2030). Budget floor from the USDA Thrifty Food Plan (2026).
       </p>
-    </Card>
+    </div>
   );
 }
 
@@ -371,13 +386,13 @@ function MetricRow({ label, value, pct, color, ok, okText, shortText, last }: {
   label: string; value: string; pct: number; color: string; ok: boolean; okText: string; shortText: string; last?: boolean;
 }) {
   return (
-    <div className={last ? 'mb-1.5' : 'mb-3.5'}>
-      <div className="flex justify-between items-baseline mb-1.5">
-        <span className="text-[14.5px] font-bold">{label}</span>
-        <span className="font-mono text-[13px] text-ink-soft">{value}</span>
+    <div style={{ marginBottom: last ? 6 : 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+        <span style={{ fontSize: 14.5, fontWeight: 700, color: ink }}>{label}</span>
+        <span className="font-mono" style={{ fontSize: 13, color: inkSoft }}>{value}</span>
       </div>
       <Meter pct={pct} color={color} height={11} />
-      <div className="text-[12.5px] mt-1.5 font-semibold" style={{ color }}>{ok ? okText : shortText}</div>
+      <div style={{ fontSize: 12.5, marginTop: 5, fontWeight: 600, color }}>{ok ? okText : shortText}</div>
     </div>
   );
 }
